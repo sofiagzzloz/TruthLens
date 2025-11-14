@@ -1,4 +1,4 @@
-from models import Document, Sentence, Correction
+from truthlens.models import Document, Sentence, Correction
 import json
 
 def save_analysis_results(document_id, analysis):

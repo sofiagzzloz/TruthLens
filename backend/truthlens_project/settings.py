@@ -75,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "truthlens.wsgi.application"
+WSGI_APPLICATION = "truthlens_project.wsgi.application"
 
 
 # Database

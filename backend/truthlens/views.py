@@ -6,8 +6,7 @@ from .ai.fact_checker import fact_checker
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .services.save_analysis import save_analysis_results
-from ai.fact_checker import fact_checker
-
+from truthlens.ai.fact_checker import fact_checker
 
 @api_view(["GET"])
 def health_check(request):
