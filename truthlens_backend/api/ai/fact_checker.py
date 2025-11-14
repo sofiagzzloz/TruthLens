@@ -1,0 +1,3 @@
+class RealFactChecker:
+    def __init__(self):
+        ...
