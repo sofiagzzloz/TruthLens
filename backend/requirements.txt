@@ -11,6 +11,8 @@ scikit-learn==1.3.0
 djangorestframework==3.14.0
 django-cors-headers==3.14.0
 python-dotenv==1.0.0
+Django>=5.0
+psycopg2-binary
 # Optional: For advanced NLP
 # spacy==3.7.0
 # For search APIs (optional)
