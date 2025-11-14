@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  backend:
+    build: ./backend
+    container_name: django_backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DB_NAME: mydb
+      DB_USER: myuser
+      DB_PASSWORD: mypassword
+      DB_HOST: db
+      DB_PORT: 5432
+
+  #frontend:
+   # build: ./frontend
+    #container_name: frontend_app
+    #volumes:
+     # - ./frontend:/app
+      # - /app/node_modules
+    #ports:
+     # - "3000:3000"   # for React/Vue dev server
+    #stdin_open: true
+    #tty: true
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
