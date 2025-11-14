@@ -3,6 +3,10 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .ai.fact_checker import fact_checker
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .services.save_analysis import save_analysis_results
+from ai.fact_checker import fact_checker
 
 
 @api_view(["GET"])
@@ -73,3 +77,16 @@ def analyze_text(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+@api_view(['POST'])
+def analyze_document(request, document_id):
+
+    document_text = request.data.get("text", "")
+
+    # Run AI
+    results = fact_checker.analyze_text(document_text)
+
+    # Save to DB
+    save_analysis_results(document_id, results)
+
+    return Response(results)
