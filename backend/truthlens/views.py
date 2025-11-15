@@ -1,13 +1,11 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-
-from .ai.fact_checker import fact_checker
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from .services.save_analysis import save_analysis_results
 from truthlens.ai.fact_checker import fact_checker
 from django.http import HttpResponse
+
+
 
 def home(request):
     return HttpResponse("<h1>TruthLens Backend is Running 🎉</h1>")
