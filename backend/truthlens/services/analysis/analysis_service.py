@@ -1,61 +1,72 @@
-import requests
-from django.conf import settings
+import json
+from django.core.exceptions import ValidationError
+
+from truthlens.models import Document
+from truthlens.ai.ollama_client import generate_completion
+from truthlens.services.analysis.persist_results import save_analysis_results
 
 
-OLLAMA_API_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = getattr(settings, "OLLAMA_MODEL", "gpt-oss:20b")
+ANALYSIS_SYSTEM_PROMPT = """
+You are a fact-checking assistant. Your job is to analyze text and split it into sentences.
+For each sentence, classify it:
 
+- "true" → factual, reliable
+- "false" → incorrect
+- "uncertain" → unclear or unverified
 
-def run_local_analysis(text: str) -> dict:
-    """
-    Sends text to the local Ollama AI model and returns structured analysis.
-    """
+For each sentence, you MUST return:
+- sentence (string)
+- label (string: "true" | "false" | "uncertain")
+- confidence (float 0–1)
+- suggested_correction (string, can be empty)
+- reasoning (string explaining the label)
+- sources (array of strings)
 
-    prompt = f"""
-You are a fact-checking model. Analyze the following text and break it down into sentences.
-
-For each sentence, output:
-- sentence: the sentence text
-- label: "true", "false", or "uncertain"
-- confidence: a number 0 to 1
-- reasoning: short explanation
-- suggested_correction: only if false or uncertain
-- sources: a list of URLs or source names
-
-Return ONLY valid JSON in this format:
-{{
+Output **ONLY** valid JSON:
+{
   "sentences": [
-    {{
+    {
       "sentence": "...",
-      "label": "true/false/uncertain",
+      "label": "...",
       "confidence": 0.82,
-      "reasoning": "...",
       "suggested_correction": "...",
-      "sources": ["source1", "source2"]
-    }}
+      "reasoning": "...",
+      "sources": ["...", "..."]
+    }
   ]
-}}
-Text to analyze:
-{text}
+}
 """
 
-    response = requests.post(
-        OLLAMA_API_URL,
-        json={
-            "model": MODEL_NAME,
-            "prompt": prompt,
-            "stream": False
-        },
-        timeout=60
-    )
 
-    result = response.json()
-
-    raw_output = result.get("response", "")
-    import json
+async def analyze_document(document_id: int) -> dict:
+    """
+    Performs AI-based semantic + factual analysis for the document,
+    stores the results, and returns the structured output.
+    """
 
     try:
-        return json.loads(raw_output)
+        document = Document.objects.get(document_id=document_id)
+    except Document.DoesNotExist as exc:
+        raise ValidationError("Document not found.") from exc
+
+    # Build prompt for the model
+    prompt = (
+        ANALYSIS_SYSTEM_PROMPT
+        + "\n\n"
+        + f"Text to analyze:\n{document.content}\n\n"
+        + "Return ONLY valid JSON."
+    )
+
+    # Ask the model
+    ai_raw_output = await generate_completion(prompt)
+
+    # Parse JSON output
+    try:
+        analysis_json = json.loads(ai_raw_output)
     except json.JSONDecodeError:
-        # fallback in case model output is messy
-        return {"sentences": []}
+        raise ValidationError("AI returned invalid JSON format.")
+
+    # Persist into the DB
+    save_analysis_results(document_id=document_id, analysis=analysis_json)
+
+    return analysis_json
