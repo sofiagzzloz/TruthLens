@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
                 ('end_index', models.IntegerField()),
                 ('flags', models.BooleanField(default=False)),
                 ('confidence_scores', models.IntegerField()),
-                ('document_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.document')),
+                ('document_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='truthlens.document')),
             ],
         ),
         migrations.CreateModel(
@@ -54,12 +54,12 @@ class Migration(migrations.Migration):
                 ('sources', models.TextField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('sentence_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.sentence')),
+                ('sentence_id', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='truthlens.sentence')),
             ],
         ),
         migrations.AddField(
             model_name='document',
             name='user_id',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='api.user'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='truthlens.user'),
         ),
     ]
