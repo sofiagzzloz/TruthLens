@@ -56,11 +56,9 @@ def analyze_document(document_id: int) -> dict:
     print(ai_output)
     print("===== END RAW OUTPUT =====\n\n")
 
-    # 1. Try direct JSON
     try:
         analysis_json = json.loads(ai_output)
     except Exception:
-        # 2. Try extracting JSON from within text
         import re
         match = re.search(r"\{.*\}", ai_output, re.DOTALL)
         if not match:
@@ -72,6 +70,6 @@ def analyze_document(document_id: int) -> dict:
             raise ValidationError(f"AI returned invalid JSON: {exc}")
 
 
-    save_analysis_results(document_id=document_id, analysis=analysis_json)
+    save_analysis_results(document, analysis_json)
 
-    return analysis_json  
+    return analysis_json 
