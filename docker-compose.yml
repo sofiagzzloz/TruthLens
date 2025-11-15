@@ -18,16 +18,17 @@ services:
       DB_HOST: db
       DB_PORT: 5432
 
-  #frontend:
-   # build: ./frontend
-    #container_name: frontend_app
-    #volumes:
-     # - ./frontend:/app
-      # - /app/node_modules
-    #ports:
-     # - "3000:3000"   # for React/Vue dev server
-    #stdin_open: true
-    #tty: true
+  frontend:
+    build: ./frontend
+    container_name: frontend_app
+    command: npm run dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"   # for React/Vue dev server
+    stdin_open: true
+    tty: true
 
   db:
     image: postgres:15

@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:20
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ RUN npm install
 
 COPY . .
 
-# Build the production bundle (optional – depends on your workflow)
+# Build the production bundle (optional - depends on your workflow)
 RUN npm run build
 
 # Expose development server port
