@@ -1,21 +1,29 @@
 from django.http import JsonResponse
-from truthlens.models import Document
-from truthlens.services.analysis.analysis_service import run_local_analysis
-from truthlens.services.analysis.persist_results import save_analysis_results
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ValidationError
+from asgiref.sync import async_to_sync
+import json
+
+from truthlens.services.analysis.analysis_service import analyze_document
 
 
-def analyze_document(request, doc_id):
+@csrf_exempt
+def analyze_document_api(request, doc_id: int):
+    """
+    POST /documents/<doc_id>/analyze/
+    Runs the AI analysis pipeline and returns structured results.
+    """
+
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
+
     try:
-        document = Document.objects.get(document_id=doc_id)
-    except Document.DoesNotExist:
-        return JsonResponse({"error": "Document not found"}, status=404)
+        # Run async function inside sync Django context
+        result = async_to_sync(analyze_document)(document_id=doc_id)
+        return JsonResponse({"status": "ok", "analysis": result}, status=200)
 
-    analysis = run_local_analysis(document.content)
+    except ValidationError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
 
-    save_analysis_results(document_id=doc_id, analysis=analysis)
-
-    return JsonResponse({
-        "status": "ok",
-        "analysis": analysis
-    })
-
+    except Exception as exc:
+        return JsonResponse({"error": f"Unexpected error: {exc}"}, status=500)

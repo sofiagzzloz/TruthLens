@@ -14,7 +14,7 @@ from .documents import (
     update_document_api,
     delete_document_api,
 )
-from .analysis import analyze_document
+from .analysis import analyze_document_api
 from .sentences import get_document_sentences
 from .corrections import get_sentence_corrections
 from django.http import HttpResponse
@@ -38,7 +38,7 @@ urlpatterns = [
     path("documents/<int:doc_id>/delete/", delete_document_api),
 
     # Analysis
-    path("documents/<int:doc_id>/analyze/", analyze_document),
+    path("documents/<int:doc_id>/analyze/", analyze_document_api),
 
     # Sentences + corrections
     path("documents/<int:doc_id>/sentences/", get_document_sentences),

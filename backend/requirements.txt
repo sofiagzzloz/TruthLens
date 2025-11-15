@@ -14,6 +14,7 @@ python-dotenv==1.0.0
 Django>=5.0
 psycopg2-binary
 django-unfold
+httpx
 # Optional: For advanced NLP
 # spacy==3.7.0
 # For search APIs (optional)
