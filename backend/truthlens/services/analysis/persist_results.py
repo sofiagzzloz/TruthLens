@@ -12,8 +12,9 @@ from typing import Dict, Any, List
 
 from django.db import transaction
 
-from truthlens.models import Document, Sentence, Correction
+from truthlens.models import Document, Sentence
 from truthlens.services.sentences.sentence_service import sync_document_sentences
+from truthlens.services.corrections.correction_services import create_correction
 
 
 def persist_analysis_results(document: Document, analysis: Dict[str, Any]) -> None:
@@ -55,9 +56,15 @@ def persist_analysis_results(document: Document, analysis: Dict[str, Any]) -> No
             db_sentence.save(update_fields=["flags", "confidence_scores", "updated_at"])
 
             # 3. Create Correction
-            Correction.objects.create(
+            create_correction(
                 sentence_id=db_sentence,
                 suggested_correction=item.get("suggested_correction", ""),
                 reasoning=item.get("reasoning", ""),
                 sources=json.dumps(item.get("sources", [])),
             )
+
+
+def save_analysis_results(document_id: int, analysis: Dict[str, Any]) -> None:
+    """Backward-compatible helper that accepts a document id."""
+    document = Document.objects.get(document_id=document_id)
+    persist_analysis_results(document=document, analysis=analysis)

@@ -6,11 +6,13 @@ from rest_framework import status
 
 from django.core.exceptions import ValidationError
 
-from truthlens.models import Document, User
+from truthlens.models import Document
 from truthlens.services.documents.document_service import (
     create_document,
     update_document,
     delete_document,
+    list_documents,
+    get_document,
 )
 from truthlens.services.sentences.sentence_service import sync_document_sentences
 
@@ -20,12 +22,12 @@ def create_document_api(request):
     """Create a new document."""
     try:
         user_id = request.data.get("user_id")
-        Document = create_document(
+        doc = create_document(
             user_id=user_id,
             title=request.data.get("title"),
             content=request.data.get("content", ""),
         )
-        return Response({"document_id": Document.document_id}, status=201)
+        return Response({"document_id": doc.document_id}, status=201)
     except ValidationError as e:
         return Response({"error": str(e)}, status=400)
 
@@ -33,7 +35,7 @@ def create_document_api(request):
 @api_view(["GET"])
 def list_documents_api(request):
     """Get all documents."""
-    docs = Document.objects.all().order_by("-updated_at")
+    docs = list_documents()
     return Response(
         [
             {
@@ -50,9 +52,9 @@ def list_documents_api(request):
 def get_document_api(request, doc_id):
     """Retrieve a single document."""
     try:
-        doc = Document.objects.get(document_id=doc_id)
-    except Document.DoesNotExist:
-        return Response({"error": "Document not found"}, status=404)
+        doc = get_document(doc_id)
+    except ValidationError as e:
+        return Response({"error": str(e)}, status=404)
 
     return Response(
         {
