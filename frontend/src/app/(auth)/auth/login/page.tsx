@@ -62,7 +62,7 @@ export default function LoginPage() {
       <CardHeader className="space-y-2">
         <CardTitle className="text-2xl font-semibold">Log in to TruthLens</CardTitle>
         <CardDescription>
-          Rejoin your fact-checking workspace to keep narratives aligned with reality.
+          Reopen your intelligent notebook, pick up where you left off, and let the AI guide today&apos;s study session.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -75,7 +75,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Email or username</FormLabel>
                   <FormControl>
-                    <Input placeholder="alex@newsroom.com" autoComplete="username" {...field} />
+                    <Input placeholder="alex@learnhq.com" autoComplete="username" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
