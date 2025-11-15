@@ -90,14 +90,45 @@ function buildHighlightedContent(
   analyses: SentenceAnalysis[],
   activeSentenceId: number | null,
   onSelect: (sentence: SentenceAnalysis) => void,
+  options: { mode?: "all" | "flagged-only" } = {},
 ): ReactNode {
+  const mode = options.mode ?? "all";
+
   if (!content.trim()) {
     return <span className="text-muted-foreground">Start drafting to see TruthLens highlights.</span>;
   }
 
-  const highlightable = analyses
-    .filter((item) => item.flags || item.corrections.length > 0)
-    .sort((a, b) => a.start_index - b.start_index);
+  const sortedAnalyses = [...analyses].sort((a, b) => a.start_index - b.start_index);
+
+  if (mode === "flagged-only") {
+    const flagged = sortedAnalyses.filter((item) => item.flags);
+    if (!flagged.length) {
+      return <span className="text-muted-foreground">TruthLens didn't flag any sentences.</span>;
+    }
+
+    return flagged.map((sentence) => {
+      const safeStart = Math.max(0, Math.min(sentence.start_index, content.length));
+      const safeEnd = Math.max(safeStart, Math.min(sentence.end_index, content.length));
+      const text = content.slice(safeStart, safeEnd) || sentence.content;
+      const isActive = activeSentenceId === sentence.sentence_id;
+
+      return (
+        <button
+          key={`flagged-${sentence.sentence_id}`}
+          type="button"
+          onClick={() => onSelect(sentence)}
+          className={cn(
+            "mb-2 inline-block w-full rounded border border-transparent bg-destructive/10 px-3 py-2 text-left text-sm font-medium text-destructive-foreground transition hover:border-destructive/40 hover:bg-destructive/20 focus:outline-none",
+            isActive && "border-destructive/60 bg-destructive/20 ring-2 ring-destructive/30",
+          )}
+        >
+          {text.trim() || sentence.content.trim()}
+        </button>
+      );
+    });
+  }
+
+  const highlightable = sortedAnalyses;
 
   if (!highlightable.length) {
     return <span>{content}</span>;
@@ -117,15 +148,22 @@ function buildHighlightedContent(
     }
 
     const text = content.slice(safeStart, safeEnd);
+    const isFlagged = sentence.flags;
+    const isActive = activeSentenceId === sentence.sentence_id;
     fragments.push(
       <button
         key={`highlight-${sentence.sentence_id}`}
         type="button"
         onClick={() => onSelect(sentence)}
         className={cn(
-          "inline rounded border border-transparent bg-destructive/10 px-1 py-[1px] text-left transition hover:border-destructive/40 hover:bg-destructive/20 focus:outline-none",
-          activeSentenceId === sentence.sentence_id &&
-            "border-destructive/60 bg-destructive/20 ring-2 ring-destructive/30",
+          "inline rounded border border-transparent px-1 py-[1px] text-left transition focus:outline-none",
+          isFlagged
+            ? "bg-destructive/10 hover:border-destructive/40 hover:bg-destructive/20"
+            : "bg-emerald-100/80 text-emerald-900 hover:border-emerald-500/40 hover:bg-emerald-200/40",
+          isActive &&
+            (isFlagged
+              ? "border-destructive/60 bg-destructive/20 ring-2 ring-destructive/30"
+              : "border-emerald-500/60 bg-emerald-200/30 ring-2 ring-emerald-400/40"),
         )}
       >
         {text}
@@ -282,12 +320,23 @@ export default function WorkspacePage() {
   );
 
   const flaggedCount = useMemo(
-    () => sentences.filter((item) => item.flags || item.corrections.length > 0).length,
+    () => sentences.filter((item) => item.flags).length,
     [sentences],
   );
 
-  const contentHighlights = useMemo(
-    () => buildHighlightedContent(formState.content, sentences, activeSentenceId, openSentenceModal),
+  const contentHighlightsAll = useMemo(
+    () =>
+      buildHighlightedContent(formState.content, sentences, activeSentenceId, openSentenceModal, {
+        mode: "all",
+      }),
+    [formState.content, sentences, activeSentenceId, openSentenceModal],
+  );
+
+  const contentHighlightsFlagged = useMemo(
+    () =>
+      buildHighlightedContent(formState.content, sentences, activeSentenceId, openSentenceModal, {
+        mode: "flagged-only",
+      }),
     [formState.content, sentences, activeSentenceId, openSentenceModal],
   );
 
@@ -817,6 +866,16 @@ export default function WorkspacePage() {
                       className="min-h-[320px] text-base"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Annotated view</p>
+                    <div className="min-h-[160px] whitespace-pre-wrap rounded-md border border-border/60 bg-background/60 p-3 text-sm leading-relaxed text-foreground">
+                      {sentences.length ? (
+                        contentHighlightsAll
+                      ) : (
+                        <span className="text-muted-foreground">Run TruthLens to color-code each sentence.</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 {isAnalysisStale && (
                   <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -830,8 +889,10 @@ export default function WorkspacePage() {
                       Last run: {analysisUpdatedAt ? formatUpdated(analysisUpdatedAt) : "—"}
                     </span>
                   </div>
-                  <div className="min-h-[160px] whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                    {contentHighlights}
+                  <div className="space-y-2 text-sm text-foreground">
+                    {flaggedCount ? contentHighlightsFlagged : (
+                      <span className="text-muted-foreground">TruthLens didn't flag any sentences.</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -959,7 +1020,7 @@ export default function WorkspacePage() {
                   </div>
                 ) : sentences.length ? (
                   sentences.map((sentence, index) => {
-                    const flagged = sentence.flags || sentence.corrections.length > 0;
+                    const flagged = sentence.flags;
                     const confidenceLabel = Number.isFinite(sentence.confidence)
                       ? `${sentence.confidence}% confidence`
                       : "Confidence unavailable";
@@ -984,8 +1045,11 @@ export default function WorkspacePage() {
                           </div>
                           <div className="flex flex-col items-end gap-1">
                             <Badge
-                              variant={flagged ? "destructive" : "secondary"}
-                              className="uppercase"
+                              variant={flagged ? "destructive" : "outline"}
+                              className={cn(
+                                "uppercase",
+                                !flagged && "border-emerald-500/40 bg-emerald-500/10 text-emerald-700",
+                              )}
                             >
                               {flagged ? (
                                 <>
@@ -993,7 +1057,7 @@ export default function WorkspacePage() {
                                 </>
                               ) : (
                                 <>
-                                  <CheckCircle2 className="size-3" /> Clear
+                                  <CheckCircle2 className="size-3" /> True
                                 </>
                               )}
                             </Badge>
@@ -1040,14 +1104,20 @@ export default function WorkspacePage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={modalSentence.flags ? "destructive" : "secondary"} className="uppercase">
+                <Badge
+                  variant={modalSentence.flags ? "destructive" : "outline"}
+                  className={cn(
+                    "uppercase",
+                    !modalSentence.flags && "border-emerald-500/40 bg-emerald-500/10 text-emerald-700",
+                  )}
+                >
                   {modalSentence.flags ? (
                     <>
                       <AlertTriangle className="size-3" /> Flagged
                     </>
                   ) : (
                     <>
-                      <CheckCircle2 className="size-3" /> Clear
+                      <CheckCircle2 className="size-3" /> True
                     </>
                   )}
                 </Badge>
