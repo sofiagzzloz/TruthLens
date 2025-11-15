@@ -29,6 +29,10 @@ SECRET_KEY = "django-insecure-pamw6idw6qgrefzc*cm+syg-i_#yut!dh)x_(g(522y_3w-c&_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Model 
+OLLAMA_MODEL = "gpt-oss:20b"
+
+
 ALLOWED_HOSTS = [
     "0.0.0.0",
     "localhost",

@@ -1,25 +1,21 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-
-from truthlens.services.analysis.analysis_service import run_analysis
-from truthlens.services.analysis.persist_results import persist_analysis_results
+from django.http import JsonResponse
 from truthlens.models import Document
+from truthlens.services.analysis.analysis_service import run_local_analysis
+from truthlens.services.analysis.persist_results import save_analysis_results
 
 
-@api_view(["POST"])
 def analyze_document(request, doc_id):
-    """Run AI analysis on a document and store results."""
     try:
         document = Document.objects.get(document_id=doc_id)
     except Document.DoesNotExist:
-        return Response({"error": "Document not found"}, status=404)
+        return JsonResponse({"error": "Document not found"}, status=404)
 
-    # 1. run the AI
-    analysis = run_analysis(document.content)
+    analysis = run_local_analysis(document.content)
 
-    # 2. store results
-    persist_analysis_results(document, analysis)
+    save_analysis_results(document_id=doc_id, analysis=analysis)
 
-    return Response({"message": "Analysis completed"}, status=200)
+    return JsonResponse({
+        "status": "ok",
+        "analysis": analysis
+    })
 

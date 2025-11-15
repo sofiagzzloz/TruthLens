@@ -1,51 +1,61 @@
-# truthlens/services/analysis/analysis_service.py
-
-"""
-This module handles AI-driven analysis for documents.
-It takes text as input and returns a structured analysis output.
-"""
-
-from __future__ import annotations
-from typing import Dict, Any
-
-from truthlens.ai.fact_checker import fact_checker
+import requests
+from django.conf import settings
 
 
-def run_analysis(text: str) -> Dict[str, Any]:
+OLLAMA_API_URL = "http://localhost:11434/api/generate"
+MODEL_NAME = getattr(settings, "OLLAMA_MODEL", "gpt-oss:20b")
+
+
+def run_local_analysis(text: str) -> dict:
     """
-    Run AI fact-checking or analysis on a block of text.
-    Returns structured output consumable by persist_results().
-    
-    Expected output format:
-    {
-        "sentences": [
-            {
-                "sentence": "Example sentence.",
-                "start_index": 0,
-                "end_index": 20,
-                "label": "false" | "true" | "uncertain",
-                "confidence": 0.87,
-                "suggested_correction": "...",
-                "reasoning": "...",
-                "sources": ["..."]
-            },
-            ...
-        ]
-    }
+    Sends text to the local Ollama AI model and returns structured analysis.
     """
 
-    if not text:
+    prompt = f"""
+You are a fact-checking model. Analyze the following text and break it down into sentences.
+
+For each sentence, output:
+- sentence: the sentence text
+- label: "true", "false", or "uncertain"
+- confidence: a number 0 to 1
+- reasoning: short explanation
+- suggested_correction: only if false or uncertain
+- sources: a list of URLs or source names
+
+Return ONLY valid JSON in this format:
+{{
+  "sentences": [
+    {{
+      "sentence": "...",
+      "label": "true/false/uncertain",
+      "confidence": 0.82,
+      "reasoning": "...",
+      "suggested_correction": "...",
+      "sources": ["source1", "source2"]
+    }}
+  ]
+}}
+Text to analyze:
+{text}
+"""
+
+    response = requests.post(
+        OLLAMA_API_URL,
+        json={
+            "model": MODEL_NAME,
+            "prompt": prompt,
+            "stream": False
+        },
+        timeout=60
+    )
+
+    result = response.json()
+
+    raw_output = result.get("response", "")
+    import json
+
+    try:
+        return json.loads(raw_output)
+    except json.JSONDecodeError:
+        # fallback in case model output is messy
         return {"sentences": []}
-
-    # Uses your existing OpenAI wrapper
-    analysis = fact_checker(text)
-
-    # Guarantee required fields exist
-    for item in analysis.get("sentences", []):
-        item.setdefault("start_index", 0)
-        item.setdefault("end_index", 0)
-        item.setdefault("suggested_correction", "")
-        item.setdefault("reasoning", "")
-        item.setdefault("sources", [])
-
-    return analysis
