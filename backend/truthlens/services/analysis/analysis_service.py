@@ -7,65 +7,71 @@ from truthlens.services.analysis.persist_results import save_analysis_results
 
 
 ANALYSIS_SYSTEM_PROMPT = """
-You are a fact-checking assistant. Your job is to analyze text and split it into sentences.
-For each sentence, classify it:
+You are a strict JSON generator.
 
-- "true" → factual, reliable
-- "false" → incorrect
-- "uncertain" → unclear or unverified
-
-For each sentence, you MUST return:
-- sentence (string)
-- label (string: "true" | "false" | "uncertain")
-- confidence (float 0–1)
-- suggested_correction (string, can be empty)
-- reasoning (string explaining the label)
-- sources (array of strings)
-
-Output ONLY valid JSON in this format:
+You MUST return *only* a JSON object shaped like this:
 
 {
   "sentences": [
     {
       "sentence": "...",
-      "label": "...",
-      "confidence": 0.82,
+      "label": "true" | "false" | "uncertain",
+      "confidence": 0.0,
       "suggested_correction": "...",
       "reasoning": "...",
       "sources": ["...", "..."]
     }
   ]
 }
+
+Rules:
+- DO NOT add backticks.
+- DO NOT add explanations.
+- DO NOT add any text before or after the JSON.
+- Reply ONLY with valid JSON.
 """
+
+
 def analyze_document(document_id: int) -> dict:
     """
-    Performs AI-based semantic + factual analysis for the document,
-    stores the results, and returns the structured output.
+    SYNC VERSION — correct for our Ollama client.
     """
 
     try:
         document = Document.objects.get(document_id=document_id)
-    except Document.DoesNotExist as exc:
-        raise ValidationError("Document not found.") from exc
+    except Document.DoesNotExist:
+        raise ValidationError("Document not found.")
 
-    # Build model prompt
     prompt = (
         ANALYSIS_SYSTEM_PROMPT
-        + "\n\n"
-        + f"Text to analyze:\n{document.content}\n\n"
-        + "Return ONLY valid JSON."
+        + "\n\nText to analyze:\n"
+        + document.content
+        + "\n\nReturn ONLY valid JSON."
     )
 
-    # Call Ollama synchronously
-    ai_raw_output = ask_ollama(prompt)
+    # SYNC call — correct for our Ollama client
+    ai_output = ask_ollama(prompt)
 
-    # Parse the JSON
+    print("\n\n===== RAW OLLAMA OUTPUT =====")
+    print(ai_output)
+    print("===== END RAW OUTPUT =====\n\n")
+
+    # 1. Try direct JSON
     try:
-        analysis_json = json.loads(ai_raw_output)
-    except json.JSONDecodeError:
-        raise ValidationError(f"AI returned invalid JSON: {ai_raw_output}")
+        analysis_json = json.loads(ai_output)
+    except Exception:
+        # 2. Try extracting JSON from within text
+        import re
+        match = re.search(r"\{.*\}", ai_output, re.DOTALL)
+        if not match:
+            raise ValidationError(f"AI returned invalid JSON: {ai_output}")
 
-    # Save results to DB
+        try:
+            analysis_json = json.loads(match.group())
+        except Exception as exc:
+            raise ValidationError(f"AI returned invalid JSON: {exc}")
+
+
     save_analysis_results(document_id=document_id, analysis=analysis_json)
 
-    return analysis_json
+    return analysis_json  
