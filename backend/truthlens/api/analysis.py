@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from truthlens.models import Document
 from truthlens.ai.fact_checker import fact_checker
-from truthlens.services.save_analysis import save_analysis_results
+from backend.truthlens.services.analysis.save_analysis import save_analysis_results
 
 
 @api_view(["POST"])
