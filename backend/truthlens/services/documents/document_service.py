@@ -69,3 +69,24 @@ def delete_document(document_id: int) -> None:
     deleted, _ = Document.objects.filter(pk=document_id).delete()
     if deleted == 0:
         raise ValidationError("document not found")
+
+
+def extract_sentences(text: str):
+    """
+    Minimal helper that returns a list of {content, start, end}.
+    Used by correction apply logic.
+    """
+    import re
+
+    sentences = []
+    pattern = r'[^.!?]+[.!?]'
+    for match in re.finditer(pattern, text, re.MULTILINE):
+        content = match.group().strip()
+        start = match.start()
+        end = match.end()
+        sentences.append({
+            "content": content,
+            "start": start,
+            "end": end
+        })
+    return sentences

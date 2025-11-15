@@ -16,7 +16,7 @@ from .documents import (
 )
 from .analysis import analyze_document_api
 from .sentences import get_document_sentences
-from .corrections import get_sentence_corrections
+from .corrections import get_sentence_corrections , apply_correction
 from django.http import HttpResponse
 
 urlpatterns = [
@@ -43,4 +43,6 @@ urlpatterns = [
     # Sentences + corrections
     path("documents/<int:doc_id>/sentences/", get_document_sentences),
     path("sentences/<int:sentence_id>/corrections/", get_sentence_corrections),
+    path("sentences/<int:sentence_id>/apply/<int:correction_id>/",apply_correction,),
+
 ]
