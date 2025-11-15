@@ -1,70 +1,44 @@
-# truthlens/services/analysis/persist_results.py
-
-"""
-Persist AI analysis results into Sentence + Correction models.
-This module receives the structured output from analysis_service.run_analysis
-and updates database rows accordingly.
-"""
-
-from __future__ import annotations
-import json
-from typing import Dict, Any, List
-
-from django.db import transaction
-
-from truthlens.models import Document, Sentence
-from truthlens.services.sentences.sentence_service import sync_document_sentences
-from truthlens.services.corrections.correction_services import create_correction
+from truthlens.models import Sentence, Correction
 
 
-def persist_analysis_results(document: Document, analysis: Dict[str, Any]) -> None:
+def save_analysis_results(document_id: int, analysis: dict):
     """
-    Save the AI analysis to the database.
-
-    Steps:
-    1. Sync sentences for the document (ensures DB matches text)
-    2. Match AI output sentences with DB sentences by index
-    3. Update flags + confidence
-    4. Create Correction entries
+    Saves AI analysis results:
+    - Flags sentences
+    - Adds corrections
     """
-    ai_sentences = analysis.get("sentences", [])
-    if not ai_sentences:
-        # Just sync and exit
-        sync_document_sentences(document=document)
-        return
 
-    # 1. Sync sentences first
-    db_sentences: List[Sentence] = sync_document_sentences(document=document)
+    sentences_data = analysis.get("sentences", [])
 
-    # Create lookup by (start, end)
-    sentence_map = {
-        (s.start_index, s.end_index): s for s in db_sentences
-    }
+    # Load all sentences for this document
+    existing_sentences = {s.content.strip(): s for s in Sentence.objects.filter(document_id=document_id)}
 
-    with transaction.atomic():
-        for item in ai_sentences:
-            key = (item["start_index"], item["end_index"])
-            db_sentence = sentence_map.get(key)
+    for item in sentences_data:
+        content = item.get("sentence", "").strip()
+        label = item.get("label")
+        confidence = item.get("confidence", 0)
+        suggestion = item.get("suggested_correction", "")
+        reasoning = item.get("reasoning", "")
+        sources = item.get("sources", [])
 
-            if not db_sentence:
-                # Sentence mismatch — skip gracefully
-                continue
+        # Match with existing sentence
+        sentence_obj = existing_sentences.get(content)
 
-            # 2. Update flags + confidence
-            db_sentence.flags = (item.get("label") != "true")
-            db_sentence.confidence_scores = int(item.get("confidence", 0) * 100)
-            db_sentence.save(update_fields=["flags", "confidence_scores", "updated_at"])
+        if not sentence_obj:
+            # AI sentence doesn't match extracted sentence → skip
+            continue
 
-            # 3. Create Correction
-            create_correction(
-                sentence_id=db_sentence,
-                suggested_correction=item.get("suggested_correction", ""),
-                reasoning=item.get("reasoning", ""),
-                sources=json.dumps(item.get("sources", [])),
+        # Update sentence flags + confidence
+        sentence_obj.flags = (label == "false")
+        sentence_obj.confidence_scores = int(confidence * 100)
+        sentence_obj.save(update_fields=["flags", "confidence_scores"])
+
+        # Create correction entry if needed
+        if suggestion or reasoning:
+            Correction.objects.create(
+                sentence_id=sentence_obj,
+                suggested_correction=suggestion,
+                reasoning=reasoning,
+                sources="\n".join(sources),
             )
 
-
-def save_analysis_results(document_id: int, analysis: Dict[str, Any]) -> None:
-    """Backward-compatible helper that accepts a document id."""
-    document = Document.objects.get(document_id=document_id)
-    persist_analysis_results(document=document, analysis=analysis)
