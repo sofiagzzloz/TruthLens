@@ -26,6 +26,43 @@ export type ChangePasswordPayload = {
   newPassword: string;
 };
 
+export type DocumentSummary = {
+  document_id: number;
+  title: string;
+  updated_at: string;
+  user_id: number;
+};
+
+export type DocumentDetail = {
+  document_id: number;
+  title: string;
+  content: string;
+  user_id: number;
+  updated_at?: string;
+};
+
+export type DocumentPayload = {
+  title: string;
+  content: string;
+};
+
+export type SentenceSummary = {
+  sentence_id: number;
+  content: string;
+  start_index: number;
+  end_index: number;
+  flags: boolean;
+  confidence: number;
+};
+
+export type CorrectionDetail = {
+  correction_id: number;
+  suggested_correction: string;
+  reasoning: string;
+  sources: string;
+  created_at: string;
+};
+
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
 const API_PREFIX = "/api";
 
@@ -97,4 +134,46 @@ export async function deleteUserAccount(userId: number): Promise<void> {
   await request<{ message: string }>(`/users/${userId}/delete/`, {
     method: "DELETE",
   });
+}
+
+export async function listDocuments(userId: number): Promise<DocumentSummary[]> {
+  return request<DocumentSummary[]>(`/documents/?user_id=${userId}`);
+}
+
+export async function getDocument(documentId: number): Promise<DocumentDetail> {
+  return request<DocumentDetail>(`/documents/${documentId}/`);
+}
+
+export async function createDocument(userId: number, payload: DocumentPayload): Promise<DocumentDetail> {
+  const { document_id } = await request<{ document_id: number }>("/documents/create/", {
+    method: "POST",
+    body: JSON.stringify({
+      user_id: userId,
+      title: payload.title,
+      content: payload.content,
+    }),
+  });
+  return getDocument(document_id);
+}
+
+export async function updateDocument(documentId: number, payload: Partial<DocumentPayload>): Promise<DocumentDetail> {
+  await request<{ message: string }>(`/documents/${documentId}/update/`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return getDocument(documentId);
+}
+
+export async function deleteDocument(documentId: number): Promise<void> {
+  await request<{ message: string }>(`/documents/${documentId}/delete/`, {
+    method: "DELETE",
+  });
+}
+
+export async function listDocumentSentences(documentId: number): Promise<SentenceSummary[]> {
+  return request<SentenceSummary[]>(`/documents/${documentId}/sentences/`);
+}
+
+export async function listSentenceCorrections(sentenceId: number): Promise<CorrectionDetail[]> {
+  return request<CorrectionDetail[]>(`/sentences/${sentenceId}/corrections/`);
 }

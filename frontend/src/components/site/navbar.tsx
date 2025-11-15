@@ -38,7 +38,6 @@ const links = [
   { href: "#features", label: "Features" },
   { href: "#workflow", label: "Workflow" },
   { href: "#insights", label: "Insights" },
-  { href: "#pricing", label: "Pricing" },
 ];
 
 export function Navbar() {
@@ -85,7 +84,7 @@ export function Navbar() {
             {ready && user ? (
               <>
                 <Button variant="ghost" asChild className="hidden md:inline-flex">
-                  <Link href="/">My workspace</Link>
+                  <Link href="/workspace">My workspace</Link>
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -107,7 +106,7 @@ export function Navbar() {
                     <DropdownMenuItem
                       onSelect={(event) => {
                         event.preventDefault();
-                        router.push("/");
+                        router.push("/workspace");
                       }}
                     >
                       Open workspace
@@ -153,8 +152,13 @@ export function Navbar() {
         </div>
 
         <Sheet>
-          <SheetTrigger className="lg:hidden" aria-label="Open navigation">
-            <Button variant="ghost" size="icon">
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              aria-label="Open navigation"
+            >
               <Menu className="size-5" />
             </Button>
           </SheetTrigger>
@@ -183,7 +187,7 @@ export function Navbar() {
               {ready && user ? (
                 <>
                   <Button asChild>
-                    <Link href="/">Open workspace</Link>
+                    <Link href="/workspace">Open workspace</Link>
                   </Button>
                   <Button variant="outline" asChild>
                     <Link href="/account">Account settings</Link>

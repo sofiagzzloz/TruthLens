@@ -34,14 +34,20 @@ def create_document_api(request):
 
 @api_view(["GET"])
 def list_documents_api(request):
-    """Get all documents."""
-    docs = list_documents()
+    """List documents, optionally filtered by user id."""
+    user_id = request.query_params.get("user_id")
+    try:
+        docs = list_documents(user_id=int(user_id)) if user_id is not None else list_documents()
+    except ValueError:
+        return Response({"error": "invalid user_id"}, status=400)
+
     return Response(
         [
             {
                 "document_id": d.document_id,
                 "title": d.title,
                 "updated_at": d.updated_at,
+                "user_id": d.user_id_id,
             }
             for d in docs
         ]

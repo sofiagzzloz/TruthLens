@@ -37,7 +37,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { cn } from "@/lib/utils";
 
 const featureCards = [
   {
@@ -308,7 +307,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="insights" className="container grid gap-10 pb-24 lg:grid-cols-[1.05fr_1fr] lg:items-center">
+      <section id="insights" className="container grid gap-10 pb-32 lg:grid-cols-[1.05fr_1fr] lg:items-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -371,86 +370,6 @@ export default function Home() {
         </motion.div>
       </section>
 
-      <section id="pricing" className="container space-y-10 pb-32">
-        <div className="text-center">
-          <Badge variant="outline" className="mb-2">
-            Choose your runway
-          </Badge>
-          <h2 className="text-3xl font-semibold tracking-tight">Plans for teams of every size.</h2>
-          <p className="mx-auto mt-2 max-w-2xl text-muted-foreground">
-            Start with collaborative reviews, then scale to automated compliance exports when you’re ready. Talk to us
-            for enterprise deployments or federated access.
-          </p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {[
-            {
-              name: "Starter",
-              price: "Free",
-              description: "For students and solo learners exploring sentence intelligence.",
-              features: ["3 smart notebooks", "Sentence diagnostics", "Daily recap email"],
-              cta: "Get started",
-              highlight: false,
-            },
-            {
-              name: "Growth",
-              price: "$149",
-              description: "Learning analytics, automations, and advanced review rituals.",
-              features: [
-                  "Unlimited notebooks",
-                  "API + automations",
-                  "Revision queue templates",
-                ],
-              cta: "Start trial",
-              highlight: true,
-            },
-            {
-              name: "Enterprise",
-              price: "Let’s chat",
-              description: "Private deployments, custom models, dedicated support.",
-              features: [
-                  "Private model connectors",
-                  "Custom retention policies",
-                  "On-prem deployments",
-                ],
-              cta: "Talk to sales",
-              highlight: false,
-            },
-          ].map((plan) => (
-            <Card
-              key={plan.name}
-              className={cn(
-                "border-border/60 bg-card/70",
-                plan.highlight && "border-primary shadow-xl shadow-primary/20",
-              )}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between text-2xl">
-                  {plan.name}
-                  {plan.highlight && (
-                    <Badge className="bg-primary text-primary-foreground">Popular</Badge>
-                  )}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">{plan.description}</p>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <p className="text-3xl font-semibold">{plan.price}</p>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-2">
-                      <CheckCircle2 className="size-4 text-primary" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Button asChild variant={plan.highlight ? "default" : "outline"} className="w-full">
-                  <Link href="/auth/register">{plan.cta}</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
