@@ -119,6 +119,13 @@ const API_URL = (() => {
 
 const API_PREFIX = "/api";
 
+export class DocumentNotFoundError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DocumentNotFoundError";
+  }
+}
+
 async function request<T>(
   input: string,
   init?: RequestInit,
@@ -134,7 +141,18 @@ async function request<T>(
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
     const message = typeof errorBody?.error === "string" ? errorBody.error : response.statusText;
+    const normalized = typeof message === "string" ? message.toLowerCase() : "";
+
+    // Allow callers to handle this specific error gracefully without throwing.
+    if (normalized.includes("document not found")) {
+      throw new DocumentNotFoundError(message ?? "document not found");
+    }
+
     throw new Error(message || "Unexpected API error");
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json() as Promise<T>;
@@ -218,9 +236,16 @@ export async function updateDocument(documentId: number, payload: Partial<Docume
 }
 
 export async function deleteDocument(documentId: number): Promise<void> {
-  await request<{ message: string }>(`/documents/${documentId}/delete/`, {
-    method: "DELETE",
-  });
+  try {
+    await request<{ message: string }>(`/documents/${documentId}/delete/`, {
+      method: "DELETE",
+    });
+  } catch (error: unknown) {
+    if (error instanceof DocumentNotFoundError) {
+      return;
+    }
+    throw error;
+  }
 }
 
 export async function listDocumentSentences(documentId: number): Promise<SentenceSummary[]> {

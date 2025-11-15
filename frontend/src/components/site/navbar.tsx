@@ -34,11 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-const links = [
-  { href: "#features", label: "Features" },
-  { href: "#workflow", label: "Workflow" },
-  { href: "#insights", label: "Insights" },
-];
+const links: Array<{ href: string; label: string }> = [];
 
 export function Navbar() {
   const pathname = usePathname();
@@ -62,23 +58,25 @@ export function Navbar() {
         </Link>
 
         <div className="hidden items-center gap-6 lg:flex">
-          <NavigationMenu>
-            <NavigationMenuList>
-              {links.map((link) => (
-                <NavigationMenuItem key={link.href}>
-                  <NavigationMenuLink
-                    href={link.href}
-                    className={cn(
-                      "text-sm font-medium transition-colors",
-                      "hover:text-primary",
-                    )}
-                  >
-                    {link.label}
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              ))}
-            </NavigationMenuList>
-          </NavigationMenu>
+          {links.length > 0 ? (
+            <NavigationMenu>
+              <NavigationMenuList>
+                {links.map((link) => (
+                  <NavigationMenuItem key={link.href}>
+                    <NavigationMenuLink
+                      href={link.href}
+                      className={cn(
+                        "text-sm font-medium transition-colors",
+                        "hover:text-primary",
+                      )}
+                    >
+                      {link.label}
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                ))}
+              </NavigationMenuList>
+            </NavigationMenu>
+          ) : null}
 
           <div className="flex items-center gap-2">
             {ready && user ? (
@@ -172,17 +170,19 @@ export function Navbar() {
                 content faster.
               </SheetDescription>
             </SheetHeader>
-            <nav className="mt-6 flex flex-col gap-4">
-              {links.map((link) => (
-                <motion.span
-                  key={link.href}
-                  whileHover={{ x: 4 }}
-                  className="text-sm font-medium"
-                >
-                  <Link href={link.href}>{link.label}</Link>
-                </motion.span>
-              ))}
-            </nav>
+            {links.length > 0 ? (
+              <nav className="mt-6 flex flex-col gap-4">
+                {links.map((link) => (
+                  <motion.span
+                    key={link.href}
+                    whileHover={{ x: 4 }}
+                    className="text-sm font-medium"
+                  >
+                    <Link href={link.href}>{link.label}</Link>
+                  </motion.span>
+                ))}
+              </nav>
+            ) : null}
             <div className="mt-8 flex flex-col gap-3">
               {ready && user ? (
                 <>
