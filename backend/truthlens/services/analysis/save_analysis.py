@@ -15,7 +15,7 @@ def save_analysis_results(document_id, analysis):
             content=item["sentence"],
             start_index=item.get("start_index", 0),
             end_index=item.get("end_index", 0),
-            flags=item["label"] != "true",    # flag false/uncertain
+            flags=item["label"] != "true",
             confidence_scores=int(item["confidence"] * 100),
         )
 
