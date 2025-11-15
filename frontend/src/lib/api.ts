@@ -63,7 +63,60 @@ export type CorrectionDetail = {
   created_at: string;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
+export type AnalysisResponse = {
+  status: string;
+  analysis: unknown;
+};
+
+function normalizeBaseUrl(raw?: string | null): string | null {
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    return new URL(raw).origin;
+  } catch (error) {
+    try {
+      return new URL(`http://${raw}`).origin;
+    } catch (nestedError) {
+      console.warn("Failed to normalize API base URL", nestedError);
+      return raw.replace(/\/$/, "");
+    }
+  }
+}
+
+const CONFIGURED_API_URL = normalizeBaseUrl(process.env.NEXT_PUBLIC_API_BASE_URL ?? null);
+
+const API_URL = (() => {
+  if (typeof window === "undefined") {
+    return CONFIGURED_API_URL ?? "http://localhost:8000";
+  }
+
+  if (!CONFIGURED_API_URL) {
+    const port = window.location.protocol === "https:" ? "443" : "8000";
+    return `${window.location.protocol}//${window.location.hostname}:${port}`;
+  }
+
+  try {
+    const url = new URL(CONFIGURED_API_URL);
+    const localBackendHosts = new Set(["backend", "127.0.0.1", "0.0.0.0"]);
+
+    if (localBackendHosts.has(url.hostname)) {
+      url.hostname = window.location.hostname;
+    }
+
+    if (!url.port) {
+      url.port = url.protocol === "https:" ? "443" : "8000";
+    }
+
+    return url.origin;
+  } catch (error) {
+    console.warn("Falling back to window-derived API base URL", error);
+    const port = window.location.protocol === "https:" ? "443" : "8000";
+    return `${window.location.protocol}//${window.location.hostname}:${port}`;
+  }
+})();
+
 const API_PREFIX = "/api";
 
 async function request<T>(
@@ -176,4 +229,10 @@ export async function listDocumentSentences(documentId: number): Promise<Sentenc
 
 export async function listSentenceCorrections(sentenceId: number): Promise<CorrectionDetail[]> {
   return request<CorrectionDetail[]>(`/sentences/${sentenceId}/corrections/`);
+}
+
+export async function runDocumentAnalysis(documentId: number): Promise<AnalysisResponse> {
+  return request<AnalysisResponse>(`/documents/${documentId}/analyze/`, {
+    method: "POST",
+  });
 }

@@ -10,7 +10,19 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, FileText, Loader2, Plus, Save, Sparkles, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle2,
+  ChevronRight,
+  FileText,
+  Info,
+  Loader2,
+  Plus,
+  Save,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { Badge } from "@/components/ui/badge";
@@ -25,12 +37,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
   createDocument,
   deleteDocument,
   getDocument,
   listDocuments,
   listDocumentSentences,
   listSentenceCorrections,
+  runDocumentAnalysis,
   updateDocument,
   type DocumentDetail,
   type DocumentSummary,
@@ -67,15 +89,46 @@ function buildHighlightedContent(
   content: string,
   analyses: SentenceAnalysis[],
   activeSentenceId: number | null,
-  onSelect: (sentenceId: number) => void,
+  onSelect: (sentence: SentenceAnalysis) => void,
+  options: { mode?: "all" | "flagged-only" } = {},
 ): ReactNode {
+  const mode = options.mode ?? "all";
+
   if (!content.trim()) {
     return <span className="text-muted-foreground">Start drafting to see TruthLens highlights.</span>;
   }
 
-  const highlightable = analyses
-    .filter((item) => item.corrections.length > 0)
-    .sort((a, b) => a.start_index - b.start_index);
+  const sortedAnalyses = [...analyses].sort((a, b) => a.start_index - b.start_index);
+
+  if (mode === "flagged-only") {
+    const flagged = sortedAnalyses.filter((item) => item.flags);
+    if (!flagged.length) {
+      return <span className="text-muted-foreground">TruthLens didn't flag any sentences.</span>;
+    }
+
+    return flagged.map((sentence) => {
+      const safeStart = Math.max(0, Math.min(sentence.start_index, content.length));
+      const safeEnd = Math.max(safeStart, Math.min(sentence.end_index, content.length));
+      const text = content.slice(safeStart, safeEnd) || sentence.content;
+      const isActive = activeSentenceId === sentence.sentence_id;
+
+      return (
+        <button
+          key={`flagged-${sentence.sentence_id}`}
+          type="button"
+          onClick={() => onSelect(sentence)}
+          className={cn(
+            "mb-2 inline-block w-full rounded border border-transparent bg-destructive/10 px-3 py-2 text-left text-sm font-medium text-destructive-foreground transition hover:border-destructive/40 hover:bg-destructive/20 focus:outline-none",
+            isActive && "border-destructive/60 bg-destructive/20 ring-2 ring-destructive/30",
+          )}
+        >
+          {text.trim() || sentence.content.trim()}
+        </button>
+      );
+    });
+  }
+
+  const highlightable = sortedAnalyses;
 
   if (!highlightable.length) {
     return <span>{content}</span>;
@@ -95,15 +148,22 @@ function buildHighlightedContent(
     }
 
     const text = content.slice(safeStart, safeEnd);
+    const isFlagged = sentence.flags;
+    const isActive = activeSentenceId === sentence.sentence_id;
     fragments.push(
       <button
         key={`highlight-${sentence.sentence_id}`}
         type="button"
-        onClick={() => onSelect(sentence.sentence_id)}
+        onClick={() => onSelect(sentence)}
         className={cn(
-          "inline rounded border border-transparent bg-destructive/10 px-1 py-[1px] text-left transition hover:border-destructive/40 hover:bg-destructive/20 focus:outline-none",
-          activeSentenceId === sentence.sentence_id &&
-            "border-destructive/60 bg-destructive/20 ring-2 ring-destructive/30",
+          "inline rounded border border-transparent px-1 py-[1px] text-left transition focus:outline-none",
+          isFlagged
+            ? "bg-destructive/10 hover:border-destructive/40 hover:bg-destructive/20"
+            : "bg-emerald-100/80 text-emerald-900 hover:border-emerald-500/40 hover:bg-emerald-200/40",
+          isActive &&
+            (isFlagged
+              ? "border-destructive/60 bg-destructive/20 ring-2 ring-destructive/30"
+              : "border-emerald-500/60 bg-emerald-200/30 ring-2 ring-emerald-400/40"),
         )}
       >
         {text}
@@ -170,6 +230,16 @@ export default function WorkspacePage() {
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
   const [isAnalysisStale, setIsAnalysisStale] = useState(false);
   const [documentPreviews, setDocumentPreviews] = useState<Record<number, string>>({});
+  const [modalSentenceId, setModalSentenceId] = useState<number | null>(null);
+  const [insightTab, setInsightTab] = useState<"suggestions" | "sentences">("suggestions");
+
+  const modalSentence = useMemo(
+    () =>
+      typeof modalSentenceId === "number"
+        ? sentences.find((item) => item.sentence_id === modalSentenceId) ?? null
+        : null,
+    [modalSentenceId, sentences],
+  );
 
   useEffect(() => {
     if (ready && !user) {
@@ -182,6 +252,8 @@ export default function WorkspacePage() {
     setActiveSentenceId(null);
     setAnalysisUpdatedAt(null);
     setIsAnalysisStale(false);
+    setModalSentenceId(null);
+    setInsightTab("suggestions");
   }, [selectedId]);
 
   useEffect(() => {
@@ -226,8 +298,14 @@ export default function WorkspacePage() {
     };
   }, [documents, documentPreviews]);
 
-  const handleSelectSentence = useCallback((sentenceId: number) => {
-    setActiveSentenceId(sentenceId);
+  const openSentenceModal = useCallback((sentence: SentenceAnalysis) => {
+    setActiveSentenceId(sentence.sentence_id);
+    setModalSentenceId(sentence.sentence_id);
+    setInsightTab("sentences");
+  }, []);
+
+  const closeSentenceModal = useCallback(() => {
+    setModalSentenceId(null);
   }, []);
 
   const suggestionItems = useMemo(
@@ -242,13 +320,24 @@ export default function WorkspacePage() {
   );
 
   const flaggedCount = useMemo(
-    () => sentences.filter((item) => item.corrections.length > 0).length,
+    () => sentences.filter((item) => item.flags).length,
     [sentences],
   );
 
-  const contentHighlights = useMemo(
-    () => buildHighlightedContent(formState.content, sentences, activeSentenceId, handleSelectSentence),
-    [formState.content, sentences, activeSentenceId, handleSelectSentence],
+  const contentHighlightsAll = useMemo(
+    () =>
+      buildHighlightedContent(formState.content, sentences, activeSentenceId, openSentenceModal, {
+        mode: "all",
+      }),
+    [formState.content, sentences, activeSentenceId, openSentenceModal],
+  );
+
+  const contentHighlightsFlagged = useMemo(
+    () =>
+      buildHighlightedContent(formState.content, sentences, activeSentenceId, openSentenceModal, {
+        mode: "flagged-only",
+      }),
+    [formState.content, sentences, activeSentenceId, openSentenceModal],
   );
 
   const refreshDocuments = useCallback(
@@ -500,13 +589,34 @@ export default function WorkspacePage() {
       return;
     }
 
+    const trimmedTitle = formState.title.trim();
+    if (!trimmedTitle) {
+      toast.error("Title is required before running analysis");
+      return;
+    }
+
     setIsAnalysisLoading(true);
     try {
+      if (hasChanges) {
+        const updated = await updateDocument(selectedId, {
+          title: trimmedTitle,
+          content: formState.content,
+        });
+        setDetail(updated);
+        setFormState({ title: updated.title ?? "", content: updated.content ?? "" });
+        setDocumentPreviews((previous) => ({
+          ...previous,
+          [updated.document_id]: updated.content ?? "",
+        }));
+        await refreshDocuments(selectedId, false);
+      }
+
+      await runDocumentAnalysis(selectedId);
+
       const sentenceResults = await listDocumentSentences(selectedId);
-      const flagged = sentenceResults.filter((item) => item.flags);
 
       const correctionEntries = await Promise.all(
-        flagged.map(async (item) => {
+        sentenceResults.map(async (item) => {
           try {
             const corrections = await listSentenceCorrections(item.sentence_id);
             return { sentenceId: item.sentence_id, corrections };
@@ -530,8 +640,8 @@ export default function WorkspacePage() {
       setAnalysisUpdatedAt(new Date().toISOString());
       setIsAnalysisStale(false);
 
-      const firstFlagged = enriched.find((item) => item.corrections.length > 0);
-      setActiveSentenceId(firstFlagged?.sentence_id ?? null);
+      const firstWithCorrections = enriched.find((item) => item.corrections.length > 0);
+      setActiveSentenceId(firstWithCorrections?.sentence_id ?? null);
 
       if (enriched.every((item) => item.corrections.length === 0)) {
         toast.info("TruthLens did not raise any suggestions for this draft");
@@ -756,6 +866,16 @@ export default function WorkspacePage() {
                       className="min-h-[320px] text-base"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">Annotated view</p>
+                    <div className="min-h-[160px] whitespace-pre-wrap rounded-md border border-border/60 bg-background/60 p-3 text-sm leading-relaxed text-foreground">
+                      {sentences.length ? (
+                        contentHighlightsAll
+                      ) : (
+                        <span className="text-muted-foreground">Run TruthLens to color-code each sentence.</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 {isAnalysisStale && (
                   <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
@@ -769,8 +889,10 @@ export default function WorkspacePage() {
                       Last run: {analysisUpdatedAt ? formatUpdated(analysisUpdatedAt) : "—"}
                     </span>
                   </div>
-                  <div className="min-h-[160px] whitespace-pre-wrap text-sm leading-relaxed text-foreground">
-                    {contentHighlights}
+                  <div className="space-y-2 text-sm text-foreground">
+                    {flaggedCount ? contentHighlightsFlagged : (
+                      <span className="text-muted-foreground">TruthLens didn't flag any sentences.</span>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -802,10 +924,10 @@ export default function WorkspacePage() {
         <Card className="border-border/60 bg-card/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Sparkles className="size-4 text-primary" /> TruthLens suggestions
+              <Sparkles className="size-4 text-primary" /> TruthLens insights
             </CardTitle>
             <CardDescription>
-              Surface high-impact revisions one sentence at a time.
+              Review tailored suggestions or inspect every sentence’s status.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -813,79 +935,271 @@ export default function WorkspacePage() {
               <span>{flaggedCount} flagged sentence{flaggedCount === 1 ? "" : "s"}</span>
               <span>{suggestionItems.length} suggestion{suggestionItems.length === 1 ? "" : "s"}</span>
             </div>
-
-            {isAnalysisLoading ? (
-              <div className="flex items-center gap-2 rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" /> TruthLens is reviewing your draft…
-              </div>
-            ) : typeof selectedId !== "number" ? (
-              <div className="rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
-                Save your draft to unlock sentence-level guidance.
-              </div>
-            ) : suggestionItems.length ? (
-              <div className="space-y-3">
-                {suggestionItems.map(({ sentence, correction }, index) => {
-                  const sources = parseSources(correction.sources);
-                  const isActive = activeSentenceId === sentence.sentence_id;
-                  return (
-                    <button
-                      key={`${sentence.sentence_id}-${correction.correction_id}-${index}`}
-                      type="button"
-                      onClick={() => handleSelectSentence(sentence.sentence_id)}
-                      className={cn(
-                        "w-full rounded-lg border border-border/60 bg-background/80 p-4 text-left transition hover:border-primary/50 hover:bg-primary/5 focus:outline-none",
-                        isActive && "border-primary/70 bg-primary/10",
-                      )}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium text-foreground">Suggestion {index + 1}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {correction.reasoning || "TruthLens spotted an opportunity to clarify this sentence."}
-                          </p>
-                        </div>
-                        {Number.isFinite(sentence.confidence) && (
-                          <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                            {sentence.confidence}% confidence
-                          </span>
+            <Tabs value={insightTab} onValueChange={(value) => setInsightTab(value as "suggestions" | "sentences")}> 
+              <TabsList>
+                <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+                <TabsTrigger value="sentences">All sentences</TabsTrigger>
+              </TabsList>
+              <TabsContent value="suggestions" className="space-y-3 pt-3">
+                {isAnalysisLoading ? (
+                  <div className="flex items-center gap-2 rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" /> TruthLens is reviewing your draft…
+                  </div>
+                ) : typeof selectedId !== "number" ? (
+                  <div className="rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+                    Save your draft to unlock sentence-level guidance.
+                  </div>
+                ) : suggestionItems.length ? (
+                  suggestionItems.map(({ sentence, correction }, index) => {
+                    const sources = parseSources(correction.sources);
+                    const isActive = activeSentenceId === sentence.sentence_id;
+                    return (
+                      <button
+                        key={`${sentence.sentence_id}-${correction.correction_id}-${index}`}
+                        type="button"
+                        onClick={() => openSentenceModal(sentence)}
+                        className={cn(
+                          "w-full rounded-lg border border-border/60 bg-background/80 p-4 text-left transition hover:border-primary/50 hover:bg-primary/5 focus:outline-none",
+                          isActive && "border-primary/70 bg-primary/10",
                         )}
-                      </div>
-                      <div className="mt-3 space-y-2 text-sm">
-                        <div className="rounded-md border border-border/60 bg-card/70 px-3 py-2 text-muted-foreground">
-                          “{sentence.content.trim() || "Selected sentence"}”
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-foreground">Suggestion {index + 1}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {correction.reasoning || "TruthLens spotted an opportunity to clarify this sentence."}
+                            </p>
+                          </div>
+                          {Number.isFinite(sentence.confidence) && (
+                            <span className="rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                              {sentence.confidence}% confidence
+                            </span>
+                          )}
                         </div>
-                        <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-foreground">
-                          {correction.suggested_correction}
+                        <div className="mt-3 space-y-2 text-sm">
+                          <div className="rounded-md border border-border/60 bg-card/70 px-3 py-2 text-muted-foreground">
+                            “{sentence.content.trim() || "Selected sentence"}”
+                          </div>
+                          <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-foreground">
+                            {correction.suggested_correction}
+                          </div>
                         </div>
-                      </div>
-                      {sources.length > 0 && (
-                        <div className="mt-3 space-y-1 text-xs text-muted-foreground">
-                          <p className="font-medium text-foreground">Sources</p>
-                          <ul className="space-y-1">
-                            {sources.map((source: string) => (
-                              <li key={source} className="truncate">
-                                {source}
-                              </li>
-                            ))}
-                          </ul>
+                        {sources.length > 0 && (
+                          <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                            <p className="font-medium text-foreground">Sources</p>
+                            <ul className="space-y-1">
+                              {sources.map((source: string) => (
+                                <li key={source} className="truncate">
+                                  {source}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })
+                ) : sentences.length ? (
+                  <div className="rounded-md border border-dashed border-primary/40 bg-primary/10 p-4 text-sm text-primary">
+                    TruthLens didn’t find any issues. Nice work!
+                  </div>
+                ) : (
+                  <div className="rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+                    Run TruthLens to generate tailored suggestions for this document.
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="sentences" className="space-y-3 pt-3">
+                {isAnalysisLoading ? (
+                  <div className="flex items-center gap-2 rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+                    <Loader2 className="size-4 animate-spin" /> TruthLens is syncing sentence insights…
+                  </div>
+                ) : typeof selectedId !== "number" ? (
+                  <div className="rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+                    Save your draft to explore sentence-level details.
+                  </div>
+                ) : sentences.length ? (
+                  sentences.map((sentence, index) => {
+                    const flagged = sentence.flags;
+                    const confidenceLabel = Number.isFinite(sentence.confidence)
+                      ? `${sentence.confidence}% confidence`
+                      : "Confidence unavailable";
+                    const correctionCount = sentence.corrections.length;
+
+                    return (
+                      <button
+                        key={sentence.sentence_id}
+                        type="button"
+                        onClick={() => openSentenceModal(sentence)}
+                        className={cn(
+                          "w-full rounded-lg border border-border/60 bg-background/80 p-4 text-left transition hover:border-primary/50 hover:bg-primary/5 focus:outline-none",
+                          activeSentenceId === sentence.sentence_id && "border-primary/70 bg-primary/10",
+                        )}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium text-foreground">Sentence {index + 1}</p>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {sentence.content.trim() || "Sentence content unavailable."}
+                            </p>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge
+                              variant={flagged ? "destructive" : "outline"}
+                              className={cn(
+                                "uppercase",
+                                !flagged && "border-emerald-500/40 bg-emerald-500/10 text-emerald-700",
+                              )}
+                            >
+                              {flagged ? (
+                                <>
+                                  <AlertTriangle className="size-3" /> Flagged
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="size-3" /> True
+                                </>
+                              )}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">{confidenceLabel}</span>
+                          </div>
                         </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : sentences.length ? (
-              <div className="rounded-md border border-dashed border-primary/40 bg-primary/10 p-4 text-sm text-primary">
-                TruthLens didn’t find any issues. Nice work!
-              </div>
-            ) : (
-              <div className="rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
-                Run TruthLens to generate tailored suggestions for this document.
-              </div>
-            )}
+                        <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                          <span>
+                            {correctionCount} correction{correctionCount === 1 ? "" : "s"}
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-primary">
+                            View details <ChevronRight className="size-3" />
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+                    Run TruthLens to populate per-sentence analysis.
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
+      <Dialog open={Boolean(modalSentence)} onOpenChange={(open) => !open && closeSentenceModal()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sentence insight</DialogTitle>
+            <DialogDescription>
+              TruthLens captured the following details for this portion of your document.
+            </DialogDescription>
+          </DialogHeader>
+          {modalSentence ? (
+            <div className="space-y-6">
+              <div className="space-y-2 rounded-lg border border-border/60 bg-background/80 p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Sentence
+                </p>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground">
+                  {modalSentence.content.trim() || "Sentence content unavailable."}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  variant={modalSentence.flags ? "destructive" : "outline"}
+                  className={cn(
+                    "uppercase",
+                    !modalSentence.flags && "border-emerald-500/40 bg-emerald-500/10 text-emerald-700",
+                  )}
+                >
+                  {modalSentence.flags ? (
+                    <>
+                      <AlertTriangle className="size-3" /> Flagged
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="size-3" /> True
+                    </>
+                  )}
+                </Badge>
+                <Badge variant="outline">
+                  {Number.isFinite(modalSentence.confidence)
+                    ? `${modalSentence.confidence}% confidence`
+                    : "Confidence unavailable"}
+                </Badge>
+                <Badge variant="outline">
+                  {modalSentence.corrections.length} correction
+                  {modalSentence.corrections.length === 1 ? "" : "s"}
+                </Badge>
+              </div>
+              {modalSentence.corrections.length ? (
+                <div className="space-y-4">
+                  {modalSentence.corrections.map((correction, index) => {
+                    const sources = parseSources(correction.sources);
+                    const createdAtLabel = correction.created_at
+                      ? new Date(correction.created_at).toLocaleString(undefined, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })
+                      : "Timestamp unavailable";
+                    return (
+                      <div
+                        key={correction.correction_id ?? `${correction.suggested_correction}-${index}`}
+                        className="space-y-3 rounded-lg border border-border/60 bg-background/70 p-4"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium text-foreground">Correction {index + 1}</p>
+                          <span className="text-xs text-muted-foreground">{createdAtLabel}</span>
+                        </div>
+                        <div className="space-y-3 text-sm">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              Analysis
+                            </p>
+                            <p className="text-foreground">
+                              {correction.reasoning || "TruthLens did not include additional analysis for this sentence."}
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              Suggested correction
+                            </p>
+                            <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-foreground">
+                              {correction.suggested_correction || "—"}
+                            </div>
+                          </div>
+                          {sources.length > 0 && (
+                            <div className="space-y-1">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Sources
+                              </p>
+                              <ul className="space-y-1 text-xs text-muted-foreground">
+                                {sources.map((source) => (
+                                  <li key={source} className="truncate">
+                                    {source}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-md border border-dashed border-border/60 bg-background/70 p-4 text-sm text-muted-foreground">
+                  TruthLens marked this sentence as clear—no corrections were generated.
+                </div>
+              )}
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={closeSentenceModal}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
