@@ -30,9 +30,9 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 const samplePromises = [
-  "AI-backed claim detection",
-  "Collaborative review workspace",
-  "Auto-generated source packs",
+  "Sentence-level mastery tracking",
+  "AI study prompts and corrections",
+  "Shared learning workspaces",
 ];
 
 export default function RegisterPage() {
@@ -52,7 +52,7 @@ export default function RegisterPage() {
     startTransition(async () => {
       try {
         const user = await registerUser(values);
-        toast.success(`Welcome, ${user.username}! Log in to start verifying.`);
+        toast.success(`Welcome, ${user.username}! Log in to start your guided learning loop.`);
         router.push("/auth/login");
       } catch (error) {
         console.error(error);
@@ -65,15 +65,14 @@ export default function RegisterPage() {
     <div className="grid gap-8 rounded-2xl border border-border/70 bg-card/80 p-8 shadow-xl backdrop-blur-sm lg:grid-cols-[1.1fr_0.9fr]">
       <div className="space-y-6">
         <div className="space-y-3">
-          <CardTitle className="text-3xl font-semibold">Create your TruthLens account</CardTitle>
+          <CardTitle className="text-3xl font-semibold">Create your TruthLens workspace</CardTitle>
           <CardDescription className="text-base">
-            Modern patterns from ReactBits keep the experience focused and accessible. Spin up a workspace and invite your
-            editorial squad in minutes.
+            Capture notes once and let TruthLens surface misunderstandings, suggest follow-ups, and keep your learning path organized.
           </CardDescription>
         </div>
         <Card className="border-border/60 bg-background/60">
           <CardHeader>
-            <CardTitle className="text-lg">Why teams choose TruthLens</CardTitle>
+            <CardTitle className="text-lg">Why learners choose TruthLens</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             {samplePromises.map((item) => (
@@ -84,7 +83,7 @@ export default function RegisterPage() {
             ))}
             <Separator />
             <p>
-              Trusted by analysts, editors, and compliance leads to ship credible content in every medium.
+              Trusted by study cohorts, research teams, and knowledge workers who need living documents that stay accurate.
             </p>
           </CardContent>
         </Card>
@@ -93,7 +92,7 @@ export default function RegisterPage() {
       <Card className="border-border/70 bg-background/90 shadow-lg">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl font-semibold">Sign up</CardTitle>
-          <CardDescription>Let&apos;s get you set up with a secure workspace.</CardDescription>
+          <CardDescription>Set up your hub for smarter notes, instant corrections, and shared insights.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -105,7 +104,7 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="newsroom-hq" autoComplete="username" {...field} />
+                      <Input placeholder="study-studio" autoComplete="username" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -116,7 +115,7 @@ export default function RegisterPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Work email</FormLabel>
+                    <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input type="email" placeholder="editor@truthlens.ai" autoComplete="email" {...field} />
                     </FormControl>

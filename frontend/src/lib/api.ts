@@ -15,6 +15,17 @@ export type ApiUser = {
   email: string;
 };
 
+export type UpdateUserPayload = {
+  username?: string;
+  email?: string;
+  password?: string;
+};
+
+export type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+};
+
 const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
 const API_PREFIX = "/api";
 
@@ -58,5 +69,32 @@ export async function getUser(userId: number): Promise<ApiUser> {
   return request<ApiUser>(`/users/${userId}/`, {
     method: "GET",
     cache: "no-store",
+  });
+}
+
+export async function updateUserProfile(userId: number, payload: UpdateUserPayload): Promise<ApiUser> {
+  await request<{ message: string }>(`/users/${userId}/update/`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
+  return getUser(userId);
+}
+
+export async function changeUserPassword(
+  userId: number,
+  payload: ChangePasswordPayload,
+): Promise<void> {
+  await request<{ message: string }>(`/users/${userId}/change-password/`, {
+    method: "POST",
+    body: JSON.stringify({
+      current_password: payload.currentPassword,
+      new_password: payload.newPassword,
+    }),
+  });
+}
+
+export async function deleteUserAccount(userId: number): Promise<void> {
+  await request<{ message: string }>(`/users/${userId}/delete/`, {
+    method: "DELETE",
   });
 }

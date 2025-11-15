@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ShieldCheck, Menu, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,16 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useAuth } from "@/components/providers/auth-provider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const links = [
   { href: "#features", label: "Features" },
@@ -32,6 +43,16 @@ const links = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, ready, logout } = useAuth();
+
+  const initials = user?.username?.slice(0, 2).toUpperCase() ?? "TL";
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Signed out");
+    router.push("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur">
@@ -61,17 +82,72 @@ export function Navbar() {
           </NavigationMenu>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" asChild>
-              <Link href={pathname?.startsWith("/auth") ? "/" : "/auth/login"}>
-                {pathname?.startsWith("/auth") ? "Back to app" : "Log in"}
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/auth/register" className="flex items-center gap-1">
-                Get started
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
+            {ready && user ? (
+              <>
+                <Button variant="ghost" asChild className="hidden md:inline-flex">
+                  <Link href="/">My workspace</Link>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="gap-2">
+                      <Avatar className="size-8">
+                        <AvatarFallback>{initials}</AvatarFallback>
+                      </Avatar>
+                      <span className="hidden text-sm font-medium sm:inline">{user.username}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.username}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        router.push("/");
+                      }}
+                    >
+                      Open workspace
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        router.push("/account");
+                      }}
+                    >
+                      Account settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        handleLogout();
+                      }}
+                    >
+                      Log out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link href={pathname?.startsWith("/auth") ? "/" : "/auth/login"}>
+                    {pathname?.startsWith("/auth") ? "Back to app" : "Log in"}
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/auth/register" className="flex items-center gap-1">
+                    Get started
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
             <ThemeToggle />
           </div>
         </div>
@@ -104,15 +180,31 @@ export function Navbar() {
               ))}
             </nav>
             <div className="mt-8 flex flex-col gap-3">
-              <Button variant="outline" asChild>
-                <Link href="/auth/login">Log in</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/auth/register" className="flex items-center gap-1">
-                  Get started
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
+              {ready && user ? (
+                <>
+                  <Button asChild>
+                    <Link href="/">Open workspace</Link>
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <Link href="/account">Account settings</Link>
+                  </Button>
+                  <Button variant="destructive" onClick={handleLogout}>
+                    Log out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" asChild>
+                    <Link href="/auth/login">Log in</Link>
+                  </Button>
+                  <Button asChild>
+                    <Link href="/auth/register" className="flex items-center gap-1">
+                      Get started
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                </>
+              )}
               <ThemeToggle />
             </div>
           </SheetContent>
