@@ -68,6 +68,17 @@ export type AnalysisResponse = {
   analysis: unknown;
 };
 
+export type ApplyCorrectionResponse = {
+  document_id: number;
+  content: string;
+  sentences: Array<{
+    sentence_id: number;
+    content: string;
+    flags: boolean;
+    confidence: number;
+  }>;
+};
+
 function normalizeBaseUrl(raw?: string | null): string | null {
   if (!raw) {
     return null;
@@ -254,6 +265,12 @@ export async function listDocumentSentences(documentId: number): Promise<Sentenc
 
 export async function listSentenceCorrections(sentenceId: number): Promise<CorrectionDetail[]> {
   return request<CorrectionDetail[]>(`/sentences/${sentenceId}/corrections/`);
+}
+
+export async function applySentenceCorrection(sentenceId: number, correctionId: number): Promise<ApplyCorrectionResponse> {
+  return request<ApplyCorrectionResponse>(`/sentences/${sentenceId}/apply/${correctionId}/`, {
+    method: "POST",
+  });
 }
 
 export async function runDocumentAnalysis(documentId: number): Promise<AnalysisResponse> {

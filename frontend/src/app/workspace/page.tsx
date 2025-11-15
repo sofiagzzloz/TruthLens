@@ -62,6 +62,7 @@ import {
   runDocumentAnalysis,
   updateDocument,
   DocumentNotFoundError,
+  applySentenceCorrection,
   type DocumentDetail,
   type DocumentSummary,
   type CorrectionDetail,
@@ -240,6 +241,7 @@ export default function WorkspacePage() {
   const [documentPreviews, setDocumentPreviews] = useState<Record<number, string>>({});
   const [modalSentenceId, setModalSentenceId] = useState<number | null>(null);
   const [insightTab, setInsightTab] = useState<"suggestions" | "sentences">("suggestions");
+  const [applyingCorrectionId, setApplyingCorrectionId] = useState<number | null>(null);
 
   const modalSentence = useMemo(
     () =>
@@ -749,6 +751,69 @@ export default function WorkspacePage() {
     }
   };
 
+  const handleApplyCorrection = async (sentenceId: number, correctionId: number | null | undefined) => {
+    if (typeof correctionId !== "number" || typeof selectedId !== "number") {
+      return;
+    }
+
+    setApplyingCorrectionId(correctionId);
+    try {
+      const result = await applySentenceCorrection(sentenceId, correctionId);
+
+      setDetail((previous) =>
+        previous && previous.document_id === result.document_id
+          ? { ...previous, content: result.content ?? "" }
+          : previous,
+      );
+
+      if (selectedId === result.document_id) {
+        setFormState((current) => ({ ...current, content: result.content ?? "" }));
+      }
+
+      setDocumentPreviews((previous) => ({
+        ...previous,
+        [result.document_id]: result.content ?? "",
+      }));
+
+      setIsAnalysisStale(true);
+      setAnalysisUpdatedAt(null);
+
+      await refreshDocuments(result.document_id, false);
+
+      const latestSentences = await listDocumentSentences(result.document_id);
+      const correctionEntries = await Promise.all(
+        latestSentences.map(async (item) => {
+          try {
+            const corrections = await listSentenceCorrections(item.sentence_id);
+            return { sentenceId: item.sentence_id, corrections };
+          } catch (error) {
+            console.error(error);
+            return { sentenceId: item.sentence_id, corrections: [] };
+          }
+        }),
+      );
+
+      const correctionMap = new Map<number, CorrectionDetail[]>(
+        correctionEntries.map((entry) => [entry.sentenceId, entry.corrections]),
+      );
+
+      const enriched: SentenceAnalysis[] = latestSentences.map((sentence) => ({
+        ...sentence,
+        corrections: correctionMap.get(sentence.sentence_id) ?? [],
+      }));
+
+      setSentences(enriched);
+      setActiveSentenceId(null);
+      closeSentenceModal();
+      toast.success("Correction applied");
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : "Unable to apply correction");
+    } finally {
+      setApplyingCorrectionId(null);
+    }
+  };
+
 
   const handleSave = async () => {
     if (!user) {
@@ -1241,6 +1306,31 @@ export default function WorkspacePage() {
                               </ul>
                             </div>
                           )}
+                        </div>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-xs text-muted-foreground">
+                            Apply this revision to update your draft instantly.
+                          </span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            className="gap-2"
+                            disabled={applyingCorrectionId !== null || typeof correction.correction_id !== "number"}
+                            onClick={() => handleApplyCorrection(modalSentence.sentence_id, correction.correction_id)}
+                          >
+                            {applyingCorrectionId === correction.correction_id ? (
+                              <>
+                                <Loader2 className="size-4 animate-spin" />
+                                Applying…
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="size-4" />
+                                Apply correction
+                              </>
+                            )}
+                          </Button>
                         </div>
                       </div>
                     );
