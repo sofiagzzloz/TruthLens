@@ -18,6 +18,7 @@ import {
   FileText,
   Info,
   Loader2,
+  MoreVertical,
   Plus,
   Save,
   Sparkles,
@@ -37,6 +38,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -54,6 +61,7 @@ import {
   listSentenceCorrections,
   runDocumentAnalysis,
   updateDocument,
+  DocumentNotFoundError,
   type DocumentDetail,
   type DocumentSummary,
   type CorrectionDetail,
@@ -269,6 +277,9 @@ export default function WorkspacePage() {
         getDocument(doc.document_id)
           .then((full) => ({ id: doc.document_id, content: full.content ?? "" }))
           .catch((error) => {
+            if (error instanceof DocumentNotFoundError) {
+              return null;
+            }
             console.error(error);
             return null;
           }),
@@ -290,6 +301,9 @@ export default function WorkspacePage() {
         });
       })
       .catch((error) => {
+        if (error instanceof DocumentNotFoundError) {
+          return;
+        }
         console.error(error);
       });
 
@@ -443,6 +457,14 @@ export default function WorkspacePage() {
         if (!isActive) {
           return;
         }
+        if (error instanceof DocumentNotFoundError) {
+          toast.info("That document is no longer available.");
+          setDetail(null);
+          setFormState(() => ({ ...EMPTY_FORM }));
+          setSelectedId(null);
+          refreshDocuments(undefined, false).catch((refreshError) => console.error(refreshError));
+          return;
+        }
         console.error(error);
         toast.error(error instanceof Error ? error.message : "Unable to open document");
         refreshDocuments(undefined, false).catch((refreshError) => console.error(refreshError));
@@ -483,6 +505,45 @@ export default function WorkspacePage() {
     setSelectedId("new");
     setDetail(null);
     setFormState(() => ({ ...EMPTY_FORM }));
+  };
+
+  const handleDelete = async (targetId?: number) => {
+    const documentId = typeof targetId === "number"
+      ? targetId
+      : typeof selectedId === "number"
+        ? selectedId
+        : null;
+
+    if (!documentId) {
+      return;
+    }
+
+    const confirmed = window.confirm("Delete this document? This cannot be undone.");
+    if (!confirmed) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteDocument(documentId);
+      toast.success("Document deleted");
+      if (selectedId === documentId) {
+        setDetail(null);
+        setFormState(() => ({ ...EMPTY_FORM }));
+        setSelectedId(null);
+      }
+      setDocumentPreviews((previous) => {
+        const next = { ...previous };
+        delete next[documentId];
+        return next;
+      });
+      await refreshDocuments(undefined, false);
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : "Unable to delete document");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (selectedId === null) {
@@ -534,17 +595,49 @@ export default function WorkspacePage() {
               const rawPreview = documentPreviews[doc.document_id] ?? (detail?.document_id === doc.document_id ? detail?.content : "");
               const previewText = buildPreviewSnippet(rawPreview);
               return (
-                <button
+                <div
                   key={doc.document_id}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleSelectDocument(doc.document_id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleSelectDocument(doc.document_id);
+                    }
+                  }}
                   className={cn(
-                    "flex h-full min-h-[220px] w-full flex-col justify-between rounded-xl border border-border/70 bg-card/70 p-6 text-left shadow-sm transition hover:border-primary/50 hover:bg-primary/5 focus:outline-none",
+                    "flex h-full min-h-[220px] w-full flex-col justify-between rounded-xl border border-border/70 bg-card/70 p-6 text-left shadow-sm transition hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
                   )}
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>Updated {formatUpdated(doc.updated_at)}</span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="rounded-full border border-transparent p-1 text-muted-foreground transition hover:border-destructive/40 hover:text-destructive focus:outline-none"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                            }}
+                            aria-label="Document options"
+                          >
+                            <MoreVertical className="size-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem
+                            className="flex items-center gap-2 text-destructive"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleDelete(doc.document_id);
+                            }}
+                          >
+                            <Trash2 className="size-4" /> Delete document
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                     <h3 className="text-lg font-semibold text-foreground">{doc.title || "Untitled document"}</h3>
                     <p className="min-h-[96px] whitespace-pre-wrap text-sm text-muted-foreground">
@@ -552,7 +645,7 @@ export default function WorkspacePage() {
                     </p>
                   </div>
                   <span className="text-sm font-medium text-primary">Continue editing →</span>
-                </button>
+                </div>
               );
             })
           ) : (
@@ -703,39 +796,6 @@ export default function WorkspacePage() {
       toast.error(error instanceof Error ? error.message : "Unable to save document");
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (typeof selectedId !== "number") {
-      return;
-    }
-
-    const documentId = selectedId;
-
-    const confirmed = window.confirm("Delete this document? This cannot be undone.");
-    if (!confirmed) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      await deleteDocument(documentId);
-      toast.success("Document deleted");
-      setDetail(null);
-      setFormState(() => ({ ...EMPTY_FORM }));
-      setSelectedId(null);
-      setDocumentPreviews((previous) => {
-        const next = { ...previous };
-        delete next[documentId];
-        return next;
-      });
-      await refreshDocuments(undefined, false);
-    } catch (error) {
-      console.error(error);
-      toast.error(error instanceof Error ? error.message : "Unable to delete document");
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -899,7 +959,7 @@ export default function WorkspacePage() {
                   <Button
                     type="button"
                     variant="destructive"
-                    onClick={handleDelete}
+                    onClick={() => handleDelete()}
                     disabled={typeof selectedId !== "number" || isDeleting}
                   >
                     {isDeleting ? (
