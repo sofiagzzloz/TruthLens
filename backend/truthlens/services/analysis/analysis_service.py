@@ -2,7 +2,7 @@ import json
 from django.core.exceptions import ValidationError
 
 from truthlens.models import Document
-from truthlens.ai.ollama_client import generate_completion
+from truthlens.ai.ollama_client import ask_ollama
 from truthlens.services.analysis.persist_results import save_analysis_results
 
 
@@ -22,7 +22,8 @@ For each sentence, you MUST return:
 - reasoning (string explaining the label)
 - sources (array of strings)
 
-Output **ONLY** valid JSON:
+Output ONLY valid JSON in this format:
+
 {
   "sentences": [
     {
@@ -36,9 +37,7 @@ Output **ONLY** valid JSON:
   ]
 }
 """
-
-
-async def analyze_document(document_id: int) -> dict:
+def analyze_document(document_id: int) -> dict:
     """
     Performs AI-based semantic + factual analysis for the document,
     stores the results, and returns the structured output.
@@ -49,7 +48,7 @@ async def analyze_document(document_id: int) -> dict:
     except Document.DoesNotExist as exc:
         raise ValidationError("Document not found.") from exc
 
-    # Build prompt for the model
+    # Build model prompt
     prompt = (
         ANALYSIS_SYSTEM_PROMPT
         + "\n\n"
@@ -57,16 +56,16 @@ async def analyze_document(document_id: int) -> dict:
         + "Return ONLY valid JSON."
     )
 
-    # Ask the model
-    ai_raw_output = await generate_completion(prompt)
+    # Call Ollama synchronously
+    ai_raw_output = ask_ollama(prompt)
 
-    # Parse JSON output
+    # Parse the JSON
     try:
         analysis_json = json.loads(ai_raw_output)
     except json.JSONDecodeError:
-        raise ValidationError("AI returned invalid JSON format.")
+        raise ValidationError(f"AI returned invalid JSON: {ai_raw_output}")
 
-    # Persist into the DB
+    # Save results to DB
     save_analysis_results(document_id=document_id, analysis=analysis_json)
 
     return analysis_json
