@@ -4,7 +4,12 @@ services:
   backend:
     build: ./backend
     container_name: django_backend
-    command: ["./wait-for-db.sh", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+    command:
+      [
+        "/bin/sh",
+        "-c",
+        "until pg_isready -h $$DB_HOST -p $$DB_PORT; do sleep 1; done; python manage.py runserver 0.0.0.0:8000",
+      ]
     volumes:
       - ./backend:/app
     ports:
