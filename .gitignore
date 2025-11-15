@@ -9,6 +9,7 @@ Thumbs.db
 
 # Python cache and compiled files
 __pycache__/
+*pyc
 *.py[cod]
 *.so
 
