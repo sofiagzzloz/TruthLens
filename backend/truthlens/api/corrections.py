@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -34,7 +35,7 @@ def get_sentence_corrections(request, sentence_id):
 
 @api_view(["POST"])
 def apply_correction(request, sentence_id, correction_id):
-    from truthlens.models import Sentence, Correction, Document
+    from truthlens.models import Sentence, Correction
 
     try:
         sentence = Sentence.objects.get(sentence_id=sentence_id)
@@ -46,25 +47,32 @@ def apply_correction(request, sentence_id, correction_id):
     except Correction.DoesNotExist:
         return Response({"error": "Correction not found"}, status=404)
 
+    if correction.sentence_id_id != sentence.sentence_id:
+        return Response({"error": "Correction does not match sentence"}, status=400)
+
     doc = sentence.document_id
+    replacement = correction.suggested_correction or ""
 
-    before = doc.content[:sentence.start_index]
-    after = doc.content[sentence.end_index:]
-    new_text = before + correction.suggested_correction + after
+    try:
+        with transaction.atomic():
+            before = doc.content[:sentence.start_index]
+            after = doc.content[sentence.end_index:]
+            new_text = f"{before}{replacement}{after}"
 
-    doc.content = new_text
-    doc.save(update_fields=["content"])
+            doc.content = new_text
+            doc.save(update_fields=["content"])
 
-    sentence.content = correction.suggested_correction
-    sentence.end_index = sentence.start_index + len(correction.suggested_correction)
-    sentence.flags = False
-    sentence.confidence_scores = 100
-    sentence.save(update_fields=["content", "end_index", "flags", "confidence_scores"])
+            sentence.content = replacement
+            sentence.end_index = sentence.start_index + len(replacement)
+            sentence.flags = False
+            sentence.confidence_scores = 100
+            sentence.save(update_fields=["content", "end_index", "flags", "confidence_scores"])
 
-    # Remove the applied correction so it no longer appears in subsequent fetches.
-    correction.delete()
+            correction.delete()
+    except Exception as exc:  # pragma: no cover - defensive
+        return Response({"error": str(exc)}, status=500)
 
-    sentences = sync_document_sentences(document=doc)
+    sentences = sync_document_sentences(document=doc, text=doc.content)
 
     payload = []
 
