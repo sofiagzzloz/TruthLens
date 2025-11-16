@@ -124,7 +124,6 @@ def sync_document_sentences(*, document: Document, text: Optional[str] = None) -
                 fields_to_update.append("end_index")
 
             if fields_to_update:
-                fields_to_update.append("updated_at")
                 sentence.save(update_fields=fields_to_update)
 
         # Create new sentences
