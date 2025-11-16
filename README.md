@@ -250,17 +250,6 @@ TruthLens directly addresses the hackathon challenge: **"Make the learning proce
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Please see our contributing guidelines in the documentation.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
 
 ## 📄 License
 
@@ -269,9 +258,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ## 👥 Team
-Jose Maria Larios Madrid [**Github**] (https://github.com/jmlarios) [**LinkedIn**] (https://www.linkedin.com/in/jos%C3%A9-mar%C3%ADa-larios-madrid-5b1144355/)
 
-Sofia Gonzalez Lozano [**Github**] (https://github.com/sofiagzzloz) [**LinkedIn**] (https://www.linkedin.com/in/sofia-gonzalez-lozano-32052a226/)
+**Jose Maria Larios Madrid** - [Github](https://github.com/jmlarios) | [LinkedIn](https://www.linkedin.com/in/jos%C3%A9-mar%C3%ADa-larios-madrid-5b1144355/)
+
+**Sofia Gonzalez Lozano** - [Github](https://github.com/sofiagzzloz) | [LinkedIn](https://www.linkedin.com/in/sofia-gonzalez-lozano-32052a226/)
 
 ---
 
