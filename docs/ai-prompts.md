@@ -1,7 +1,7 @@
 ---
-title: AI Prompt Library
 description: Example prompts used to guide TruthLens AI behaviour across services
 ---
+
 # AI Prompt Library
 
 This page captures the used prompts that drive TruthLens AI workflows.
@@ -16,9 +16,9 @@ Ok, perfect. Moving on with sentence_service.py. This file is supposed to implem
 
 **Intended outcome**
 
-- Enforce idempotent sentence syncing
-- Handle new, updated, and deleted sentences without duplication
-- Align with existing Django models (`Sentence`, `Document`)
+* Enforce idempotent sentence syncing
+* Handle new, updated, and deleted sentences without duplication
+* Align with existing Django models (`Sentence`, `Document`)
 
 ## Frontend Stack Setup Prompt
 
@@ -44,8 +44,8 @@ and also things from here: https://reactbits.dev/get-started/index in order to b
 
 **Intended outcome**
 
-- Generate boilerplate code and component structure aligned with the chosen libraries
-- Emphasize TypeScript-first development and consistent UI primitives
+* Generate boilerplate code and component structure aligned with the chosen libraries
+* Emphasize TypeScript-first development and consistent UI primitives
 
 ## Auth Pages Prompt
 
@@ -57,8 +57,8 @@ Now, lets move forward. I need you to develop the frontend for user registration
 
 **Intended outcome**
 
-- Deliver registration and login pages that call the Django REST auth endpoints
-- Provide end-to-end validation and error handling for the auth flow
+* Deliver registration and login pages that call the Django REST auth endpoints
+* Provide end-to-end validation and error handling for the auth flow
 
 ## Workspace and Navigation Prompt
 
@@ -79,8 +79,8 @@ For now do this.
 
 **Intended outcome**
 
-- Clean up navigation, remove unused sections, and ensure routing works
-- Implement document CRUD UI within the workspace view
+* Clean up navigation, remove unused sections, and ensure routing works
+* Implement document CRUD UI within the workspace view
 
 ## Sentence Analysis UI Prompt
 
@@ -92,8 +92,8 @@ I want to keep working on the frontend. Moving on with sentences, analysis and c
 
 **Intended outcome**
 
-- Build a consistent per-sentence modal experience listing flags, confidence, reasoning, and corrections
-- Integrate modal controls with the document editor and suggestion panel
+* Build a consistent per-sentence modal experience listing flags, confidence, reasoning, and corrections
+* Integrate modal controls with the document editor and suggestion panel
 
 ## Model Selection Prompt
 
@@ -105,5 +105,5 @@ Okay, so all of the files, I'm not gonna change until we have the model that I'm
 
 **Intended outcome**
 
-- Prefer open-source, zero-cost models running locally via Ollama
-- Document available model identifiers (confirm spelling—likely `bcc20` / `ggml` variants) for repeatable setup
+* Prefer open-source, zero-cost models running locally via Ollama
+* Document available model identifiers (confirm spelling—likely `bcc20` / `ggml` variants) for repeatable setup

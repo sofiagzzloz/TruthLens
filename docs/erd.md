@@ -1,5 +1,4 @@
 ---
-title: Data Model
 description: Entity relationship diagram and explanations for core TruthLens tables
 ---
 
@@ -52,6 +51,6 @@ erDiagram
 
 ## Model Notes
 
-- `flags` marks sentences that the AI believes need attention.
-- `confidence_scores` stores the AI confidence (0-100) so the UI can prioritize low-certainty claims.
-- Corrections persist the AI response, enabling learners to reapply suggestions even after leaving the workspace.
+* `flags` marks sentences that the AI believes need attention.
+* `confidence_scores` stores the AI confidence (0-100) so the UI can prioritize low-certainty claims.
+* Corrections persist the AI response, enabling learners to reapply suggestions even after leaving the workspace.

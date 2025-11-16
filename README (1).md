@@ -1,8 +1,3 @@
----
-title: TruthLens Overview
-description: High-level introduction to the TruthLens project for GitBook and in-repo docs
----
-
 # TruthLens
 
 TruthLens is a study companion built by students for students. It turns any note-taking session into a guided learning workflow by continuously fact-checking your content and offering targeted corrections that you can apply with a click.
