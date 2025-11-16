@@ -14,7 +14,7 @@
 This project is submitted to:
 - **🏆 Automate Learning: Build Smarter Study Tools** (Primary Track)
 - **📚 GitBook Best Documentation Track** (Bonus Track)
-
+- **🤖 Built with Cline CLI** (Bonus Track)
 ---
 
 ## 📖 What is TruthLens?
@@ -39,13 +39,17 @@ We both go to an international university where professors first languages are o
 
 We built this for students like us. 
 
-Learning efficiently is hard. Students and knowledge workers often:
-- ❌ Take notes from multiple sources without verifying accuracy
-- ❌ Struggle to identify gaps in their understanding
-- ❌ Waste time manually fact-checking every claim
-- ❌ Miss important corrections that could improve their knowledge
+Most learners:
 
-**TruthLens automates the feedback loop** — it catches errors early, provides immediate corrections, and helps you build a more reliable knowledge base. This makes the learning process faster, more efficient, and more confident.
+- ❌ Take notes quickly without verifying accuracy
+
+- ❌ Miss subtle factual errors
+
+- ❌ Spend hours double-checking material
+
+- ❌ Struggle to turn raw notes into reliable knowledge
+
+TruthLens automates the entire feedback loop, helping you learn faster, more accurately, and more confidently.
 
 ---
 
@@ -76,9 +80,8 @@ Learning efficiently is hard. Students and knowledge workers often:
 - **LLM-based Fact Checking** - Custom prompt engineering for sentence analysis
 
 ### DevOps
-- **Docker & Docker Compose** - Containerization
-- **PostgreSQL** - Database
-- **Nginx-ready** - Production deployment support
+- **Docker & Docker Compose** - Multi-container orchestration
+- **PostgreSQL** - Database management
 
 ---
 
@@ -87,7 +90,7 @@ Learning efficiently is hard. Students and knowledge workers often:
 ### Prerequisites
 
 - **Docker** and **Docker Compose** installed
-- **Ollama** installed locally ([Install from here](https://ollama.ai/))
+- **Ollama** installed locally ([Install from here](https://ollama.ai/)), we used gpt-oss:20b
 - Port 3000 (frontend) and 8000 (backend) available
 
 ### Installation
@@ -110,7 +113,7 @@ Learning efficiently is hard. Students and knowledge workers often:
 
 4. **Build and start all services**
    ```bash
-   docker-compose up --build
+   docker-compose up -d --build
    ```
 
 5. **Run database migrations** (first time only)
@@ -234,25 +237,9 @@ TruthLens directly addresses the hackathon challenge: **"Make the learning proce
 
 ---
 
-## 🎨 Screenshots
-
-### Landing Page
-*A modern, clean interface that introduces TruthLens capabilities*
-
-### Workspace
-*Your personal note-taking environment with real-time analysis*
-
-### Analysis View
-*See flagged sentences with detailed corrections and reasoning*
-
-### Corrections Dashboard
-*Manage and apply AI-suggested improvements*
-
----
 
 ## 🔮 Future Enhancements
 
-- [ ] Multi-language support for international learners
 - [ ] Export to PDF/Markdown with citations
 - [ ] Collaborative workspaces for study groups
 - [ ] Integration with popular note-taking apps
@@ -282,30 +269,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ## 👥 Team
+Jose Maria Larios Madrid [**Github**] (https://github.com/jmlarios) [**LinkedIn**] (https://www.linkedin.com/in/jos%C3%A9-mar%C3%ADa-larios-madrid-5b1144355/)
 
-*Add your team members here with their roles and GitHub/LinkedIn links*
-
----
-
-## 🙏 Acknowledgments
-
-- **Ollama** - For making local LLM inference accessible
-- **Django & Next.js communities** - For amazing frameworks and documentation
-- **Hackathon organizers** - For the opportunity to build something meaningful
-- **All contributors** - Who helped make TruthLens possible
+Sofia Gonzalez Lozano [**Github**] (https://github.com/sofiagzzloz) [**LinkedIn**] (https://www.linkedin.com/in/sofia-gonzalez-lozano-32052a226/)
 
 ---
 
 ## 📞 Contact & Links
 
-- **GitHub Repository**: https://github.com/yourusername/TruthLens
-- **Documentation**: [Your GitBook URL]
-- **Demo Video**: [Your Video URL]
-- **Live Demo**: [If deployed]
+- **GitHub Repository**: https://github.com/sofiagzzloz/TruthLens
+- **Documentation**: https://sofia-gonzalez-1.gitbook.io/truthlens/
+- **Demo Video**: https://youtu.be/egVAQgUe__c
 
 ---
 
 <div align="center">
   <p>Built with 💙 for learners everywhere</p>
-  <p>⭐ Star this repo if you find it helpful!</p>
+  <p> - Atte: Sofia & JM</p>
 </div>
