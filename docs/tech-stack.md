@@ -2,7 +2,6 @@
 title: Technology Stack
 description: Overview of the tools and frameworks that power TruthLens
 ---
-
 # Technology Stack
 
 TruthLens combines a modern TypeScript frontend, a robust Python backend, and containerized DevOps tooling to deliver AI-assisted learning.
@@ -31,5 +30,3 @@ TruthLens combines a modern TypeScript frontend, a robust Python backend, and co
 ## DevOps and Tooling
 
 - Docker and Docker Compose for reproducible environments
-- Nginx-ready deployment configuration for production readiness
-- GitHub Actions (planned) for automated CI/CD hooks
