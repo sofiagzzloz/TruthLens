@@ -1,23 +1,24 @@
+---
+hidden: true
+---
+
 # 🔍 TruthLens
 
 > **Automate your learning loop** — Turn messy notes into a guided learning system with AI-powered fact-checking and smart corrections.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js](https://img.shields.io/badge/Next.js-16.0-black)](https://nextjs.org/)
-[![Django](https://img.shields.io/badge/Django-5.0-green)](https://www.djangoproject.com/)
-[![React](https://img.shields.io/badge/React-19.2-blue)](https://reactjs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Next.js](https://img.shields.io/badge/Next.js-16.0-black)](https://nextjs.org/) [![Django](https://img.shields.io/badge/Django-5.0-green)](https://www.djangoproject.com/) [![React](https://img.shields.io/badge/React-19.2-blue)](https://reactjs.org/)
 
----
+***
 
 ## 🎯 Hackathon Tracks
 
 This project is submitted to:
 
-- **🏆 Automate Learning: Build Smarter Study Tools** (Primary Track)
-- **📚 GitBook Best Documentation Track** (Bonus Track)
-- **🤖 Built with Cline CLI** (Bonus Track)
+* **🏆 Automate Learning: Build Smarter Study Tools** (Primary Track)
+* **📚 GitBook Best Documentation Track** (Bonus Track)
+* **🤖 Built with Cline CLI** (Bonus Track)
 
----
+***
 
 ## 📖 What is TruthLens?
 
@@ -27,14 +28,14 @@ Think of it as having a personal fact-checker and study assistant built directly
 
 ### ✨ Key Features
 
-- **🔬 Sentence-Level Intelligence**: Inspects every sentence you write and flags weak or incorrect knowledge
-- **🤖 AI-Powered Fact Checking**: Uses advanced LLMs (via Ollama) to verify claims and provide grounded corrections
-- **📝 Effortless Corrections**: Get refined notes with confidence that every claim has been verified
-- **🔗 Source Citations**: Automatically receive references to trustworthy sources for your corrections
-- **📊 Learning Workspace**: Organized dashboard to manage documents, view analysis, and track corrections
-- **🔒 Secure & Private**: User authentication with secure workspace management
+* **🔬 Sentence-Level Intelligence**: Inspects every sentence you write and flags weak or incorrect knowledge
+* **🤖 AI-Powered Fact Checking**: Uses advanced LLMs (via Ollama) to verify claims and provide grounded corrections
+* **📝 Effortless Corrections**: Get refined notes with confidence that every claim has been verified
+* **🔗 Source Citations**: Automatically receive references to trustworthy sources for your corrections
+* **📊 Learning Workspace**: Organized dashboard to manage documents, view analysis, and track corrections
+* **🔒 Secure & Private**: User authentication with secure workspace management
 
----
+***
 
 ## 💡 What Inspired TruthLens?
 
@@ -44,100 +45,99 @@ We built this for students like us.
 
 Most learners:
 
-- ❌ Take notes quickly without verifying accuracy
-- ❌ Miss subtle factual errors
-- ❌ Spend hours double-checking material
-- ❌ Struggle to turn raw notes into reliable knowledge
+* ❌ Take notes quickly without verifying accuracy
+* ❌ Miss subtle factual errors
+* ❌ Spend hours double-checking material
+* ❌ Struggle to turn raw notes into reliable knowledge
 
 TruthLens automates the entire feedback loop, helping you learn faster, more accurately, and more confidently.
 
----
+***
 
 ## 🛠️ Technologies Used
 
 ### Frontend
 
-- **Next.js 16** - React framework with App Router
-- **React 19.2** - UI library
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **Framer Motion** - Smooth animations
-- **shadcn/ui** - Beautiful, accessible components
-- **Radix UI** - Unstyled, accessible primitives
-- **React Hook Form** - Form management
-- **Zod** - Schema validation
+* **Next.js 16** - React framework with App Router
+* **React 19.2** - UI library
+* **TypeScript** - Type-safe development
+* **Tailwind CSS** - Utility-first styling
+* **Framer Motion** - Smooth animations
+* **shadcn/ui** - Beautiful, accessible components
+* **Radix UI** - Unstyled, accessible primitives
+* **React Hook Form** - Form management
+* **Zod** - Schema validation
 
 ### Backend
 
-- **Django 5.0** - Python web framework
-- **Django REST Framework** - API development
-- **PostgreSQL 15** - Relational database
-- **Django Unfold** - Modern admin interface
-- **Django CORS Headers** - Cross-origin resource sharing
+* **Django 5.0** - Python web framework
+* **Django REST Framework** - API development
+* **PostgreSQL 15** - Relational database
+* **Django Unfold** - Modern admin interface
+* **Django CORS Headers** - Cross-origin resource sharing
 
 ### AI/ML
 
-- **Ollama** - Local LLM inference
-- **PyTorch** - Deep learning framework
-- **Transformers** - Hugging Face transformers
-- **LLM-based Fact Checking** - Custom prompt engineering for sentence analysis
+* **Ollama** - Local LLM inference
+* **PyTorch** - Deep learning framework
+* **Transformers** - Hugging Face transformers
+* **LLM-based Fact Checking** - Custom prompt engineering for sentence analysis
 
 ### DevOps
 
-- **Docker & Docker Compose** - Multi-container orchestration
-- **PostgreSQL** - Database management
+* **Docker & Docker Compose** - Multi-container orchestration
+* **PostgreSQL** - Database management
 
----
+***
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Docker Desktop** installed
-- **Ollama** installed locally ([Install from here](https://ollama.ai/)), we used gpt-oss:20b
-- 14GB free of RAM available
-- Port 3000 (frontend) and 8000 (backend) available
+* **Docker Desktop** installed
+* **Ollama** installed locally ([Install from here](https://ollama.ai/)), we used gpt-oss:20b
+* 14GB free of RAM available
+* Port 3000 (frontend) and 8000 (backend) available
 
 ### Installation
 
-1. **Clone the repository**
+1.  **Clone the repository**
 
-   ```bash
-   git clone https://github.com/sofiagzzloz/TruthLens
-   cd TruthLens
-   ```
-2. **Start Ollama** (in a separate terminal)
+    ```bash
+    git clone https://github.com/sofiagzzloz/TruthLens
+    cd TruthLens
+    ```
+2.  **Start Ollama** (in a separate terminal)
 
-   ```bash
-   ollama serve
-   ```
-3. **Pull an LLM model** (e.g., gpt-oss:20b)
+    ```bash
+    ollama serve
+    ```
+3.  **Pull an LLM model** (e.g., gpt-oss:20b)
 
-   ```bash
-   ollama pull gpt-oss:20b
-   ```
-4. **Build and start all services**
+    ```bash
+    ollama pull gpt-oss:20b
+    ```
+4.  **Build and start all services**
 
-   ```bash
-   docker-compose up -d --build
-   ```
-5. **Run database migrations** (first time only)
+    ```bash
+    docker-compose up -d --build
+    ```
+5.  **Run database migrations** (first time only)
 
-   ```bash
-   docker exec -it django_backend python manage.py migrate
-   ```
-6. **Create a superuser** (optional, for admin access)
+    ```bash
+    docker exec -it django_backend python manage.py migrate
+    ```
+6.  **Create a superuser** (optional, for admin access)
 
-   ```bash
-   docker exec -it django_backend python manage.py createsuperuser
-   ```
+    ```bash
+    docker exec -it django_backend python manage.py createsuperuser
+    ```
 7. **Access the application**
+   * Frontend: http://localhost:3000
+   * Backend API: http://localhost:8000
+   * Django Admin: http://localhost:8000/admin
 
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8000
-   - Django Admin: http://localhost:8000/admin
-
----
+***
 
 ## 📱 How It Works
 
@@ -163,7 +163,7 @@ TruthLens automates the entire feedback loop, helping you learn faster, more acc
                      └─────────────┘
 ```
 
----
+***
 
 ## 📁 Project Structure
 
@@ -191,7 +191,7 @@ TruthLens/
 └── README.md                # This file
 ```
 
----
+***
 
 ## 🎥 Demo Video
 
@@ -199,13 +199,13 @@ TruthLens/
 
 Our demo showcases:
 
-- Creating a new document and writing notes
-- Real-time sentence analysis and fact-checking
-- Viewing corrections with AI reasoning and sources
-- Applying corrections to improve note accuracy
-- The complete learning workflow from draft to verified knowledge
+* Creating a new document and writing notes
+* Real-time sentence analysis and fact-checking
+* Viewing corrections with AI reasoning and sources
+* Applying corrections to improve note accuracy
+* The complete learning workflow from draft to verified knowledge
 
----
+***
 
 ## 📚 Documentation
 
@@ -215,15 +215,15 @@ Full documentation is available in our **GitBook documentation site**:
 
 The docs include:
 
-- Table of Contents
-- Technology Stack
-- Entity Relationship Diagram
-- Backend Features
-- Frontend Features
-- AI Prompt Library
-- API reference
+* Table of Contents
+* Technology Stack
+* Entity Relationship Diagram
+* Backend Features
+* Frontend Features
+* AI Prompt Library
+* API reference
 
----
+***
 
 ## 🌟 Why TruthLens for Learning Automation?
 
@@ -239,32 +239,31 @@ TruthLens directly addresses the hackathon challenge: **"Make the learning proce
 
 ### Learning Benefits:
 
-- **⚡ Faster**: Automated fact-checking saves hours of manual verification
-- **🎯 More Accurate**: AI catches errors humans might miss
-- **📈 Better Retention**: Correcting mistakes reinforces learning
-- **🔗 Better Citations**: Automatic source linking improves reference habits
-- **🧠 Active Learning**: Reviewing corrections engages deeper understanding
+* **⚡ Faster**: Automated fact-checking saves hours of manual verification
+* **🎯 More Accurate**: AI catches errors humans might miss
+* **📈 Better Retention**: Correcting mistakes reinforces learning
+* **🔗 Better Citations**: Automatic source linking improves reference habits
+* **🧠 Active Learning**: Reviewing corrections engages deeper understanding
 
----
+***
 
 ## 🔮 Future Enhancements
 
-- [ ] Export to PDF/Markdown with citations
-- [ ] Collaborative workspaces for study groups
-- [ ] Integration with popular note-taking apps
-- [ ] Advanced analytics and learning insights
-- [ ] Mobile applications (iOS & Android)
-- [ ] Browser extension for web-based learning
-- [ ] Customizable AI models and prompts
+* [ ] Export to PDF/Markdown with citations
+* [ ] Collaborative workspaces for study groups
+* [ ] Integration with popular note-taking apps
+* [ ] Advanced analytics and learning insights
+* [ ] Mobile applications (iOS & Android)
+* [ ] Browser extension for web-based learning
+* [ ] Customizable AI models and prompts
 
----
-
+***
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE/) file for details.
 
----
+***
 
 ## 👥 Team
 
@@ -272,17 +271,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Sofia Gonzalez Lozano** - [Github](https://github.com/sofiagzzloz) | [LinkedIn](https://www.linkedin.com/in/sofia-gonzalez-lozano-32052a226/)
 
----
+***
 
 ## 📞 Contact & Links
 
-- **GitHub Repository**: https://github.com/sofiagzzloz/TruthLens
-- **Documentation**: https://sofia-gonzalez-1.gitbook.io/truthlens/
-- **Demo Video**: https://youtu.be/egVAQgUe__c
+* **GitHub Repository**: https://github.com/sofiagzzloz/TruthLens
+* **Documentation**: https://sofia-gonzalez-1.gitbook.io/truthlens/
+* **Demo Video**: https://youtu.be/egVAQgUe\_\_c
 
----
+***
 
-<div align="center">
-  <p>Built with 💙 for learners everywhere</p>
-  <p> - Atte: Sofia & JM</p>
-</div>
+Built with 💙 for learners everywhere
+
+\- Atte: Sofia & JM
