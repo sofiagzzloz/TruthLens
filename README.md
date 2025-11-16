@@ -201,9 +201,9 @@ Our demo showcases:
 
 ## 📚 Documentation
 
-Full documentation is available in our **GitBook documentation site** (https://sofia-gonzalez-1.gitbook.io/truthlens/): 
+Full documentation is available in our **GitBook documentation site**: 
 
-**[📖 View Documentation](#)** 
+[**📖 View Documentation**](https://sofia-gonzalez-1.gitbook.io/truthlens/)
 
 The docs include:
 - Getting started guide
