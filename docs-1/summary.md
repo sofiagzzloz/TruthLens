@@ -1,6 +1,6 @@
 # Table of Contents
 
-* [Overview](../)
+* [Overview](./)
 * [Technology Stack](tech-stack.md)
 * [Entity Relationship Diagram](erd.md)
 * [Backend Features](backend.md)
