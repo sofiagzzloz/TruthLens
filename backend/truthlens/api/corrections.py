@@ -72,33 +72,9 @@ def apply_correction(request, sentence_id, correction_id):
     except Exception as exc:  # pragma: no cover - defensive
         return Response({"error": str(exc)}, status=500)
 
-    sentences = sync_document_sentences(document=doc, text=doc.content)
-
-    payload = []
-
-    for s in sentences:
-        corrections = get_corrections_for_sentence(s.sentence_id)
-        payload.append({
-            "sentence_id": s.sentence_id,
-            "content": s.content,
-            "start_index": s.start_index,
-            "end_index": s.end_index,
-            "flags": s.flags,
-            "confidence": s.confidence_scores,
-            "corrections": [
-                {
-                    "correction_id": c.correction_id,
-                    "suggested_correction": c.suggested_correction,
-                    "reasoning": c.reasoning,
-                    "sources": c.sources,
-                    "created_at": c.created_at,
-                }
-                for c in corrections
-            ],
-        })
+    sync_document_sentences(document=doc, text=doc.content)
 
     return Response({
         "document_id": doc.document_id,
         "content": doc.content,
-        "sentences": payload,
     })

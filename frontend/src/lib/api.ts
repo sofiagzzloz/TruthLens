@@ -71,15 +71,6 @@ export type AnalysisResponse = {
 export type ApplyCorrectionResponse = {
   document_id: number;
   content: string;
-  sentences: Array<{
-    sentence_id: number;
-    content: string;
-    start_index: number;
-    end_index: number;
-    flags: boolean;
-    confidence: number;
-    corrections: CorrectionDetail[];
-  }>;
 };
 
 function normalizeBaseUrl(raw?: string | null): string | null {
