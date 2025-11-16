@@ -188,7 +188,7 @@ TruthLens/
 
 ## 🎥 Demo Video
 
-[**https://youtu.be/egVAQgUe__c**](#) 
+[**Watch our demo video here**](https://youtu.be/egVAQgUe__c)
 
 Our demo showcases:
 - Creating a new document and writing notes
@@ -201,9 +201,9 @@ Our demo showcases:
 
 ## 📚 Documentation
 
-Full documentation is available in our **GitBook documentation site**:
+Full documentation is available in our **GitBook documentation site** (https://sofia-gonzalez-1.gitbook.io/truthlens/): 
 
-**[📖 View Documentation](#)** *(Add your GitBook link here)*
+**[📖 View Documentation](#)** 
 
 The docs include:
 - Getting started guide
