@@ -1,4 +1,5 @@
 from truthlens.models import Sentence, Correction
+from truthlens.services.sentences.sentence_service import sync_document_sentences
 
 
 def save_analysis_results(document, analysis: dict):
@@ -10,11 +11,17 @@ def save_analysis_results(document, analysis: dict):
 
     sentences_data = analysis.get("sentences", [])
 
-    # Load all sentences for this document
-    existing_sentences = {
-        s.content.strip(): s
-        for s in Sentence.objects.filter(document_id=document)
-    }
+    sentences = sync_document_sentences(document=document, text=document.content)
+
+    sentence_lookup = {sentence.content.strip(): sentence for sentence in sentences}
+
+    sentence_ids = [sentence.sentence_id for sentence in sentences]
+    if sentence_ids:
+        Correction.objects.filter(sentence_id__in=sentence_ids).delete()
+        Sentence.objects.filter(sentence_id__in=sentence_ids).update(
+            flags=False,
+            confidence_scores=0,
+        )
 
     for item in sentences_data:
         content = item.get("sentence", "").strip()
@@ -25,7 +32,7 @@ def save_analysis_results(document, analysis: dict):
         sources = item.get("sources", [])
 
         # Match by sentence content
-        sentence_obj = existing_sentences.get(content)
+        sentence_obj = sentence_lookup.get(content)
         if not sentence_obj:
             continue  # AI sentence doesn't match extracted sentence
 
