@@ -751,35 +751,32 @@ export default function WorkspacePage() {
     }
   };
 
-  const preloadLatestSentences = useCallback(
-    async (documentId: number) => {
-      const latestSentences = await listDocumentSentences(documentId);
-      const correctionEntries = await Promise.all(
-        latestSentences.map(async (item) => {
-          try {
-            const corrections = await listSentenceCorrections(item.sentence_id);
-            return { sentenceId: item.sentence_id, corrections };
-          } catch (error) {
-            console.error(error);
-            return { sentenceId: item.sentence_id, corrections: [] };
-          }
-        }),
-      );
+  const preloadLatestSentences = async (documentId: number) => {
+    const latestSentences = await listDocumentSentences(documentId);
+    const correctionEntries = await Promise.all(
+      latestSentences.map(async (item) => {
+        try {
+          const corrections = await listSentenceCorrections(item.sentence_id);
+          return { sentenceId: item.sentence_id, corrections };
+        } catch (error) {
+          console.error(error);
+          return { sentenceId: item.sentence_id, corrections: [] };
+        }
+      }),
+    );
 
-      const correctionMap = new Map<number, CorrectionDetail[]>(
-        correctionEntries.map((entry) => [entry.sentenceId, entry.corrections]),
-      );
+    const correctionMap = new Map<number, CorrectionDetail[]>(
+      correctionEntries.map((entry) => [entry.sentenceId, entry.corrections]),
+    );
 
-      const enriched: SentenceAnalysis[] = latestSentences.map((sentence) => ({
-        ...sentence,
-        corrections: correctionMap.get(sentence.sentence_id) ?? [],
-      }));
+    const enriched: SentenceAnalysis[] = latestSentences.map((sentence) => ({
+      ...sentence,
+      corrections: correctionMap.get(sentence.sentence_id) ?? [],
+    }));
 
-      setSentences(enriched);
-      setActiveSentenceId(null);
-    },
-    [],
-  );
+    setSentences(enriched);
+    setActiveSentenceId(null);
+  };
 
   const handleApplyCorrection = async (sentenceId: number, correctionId: number | null | undefined) => {
     if (typeof correctionId !== "number" || typeof selectedId !== "number" || applyingCorrectionId !== null) {

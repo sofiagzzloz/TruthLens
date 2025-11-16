@@ -61,6 +61,9 @@ def apply_correction(request, sentence_id, correction_id):
     sentence.confidence_scores = 100
     sentence.save(update_fields=["content", "end_index", "flags", "confidence_scores"])
 
+    # Remove the applied correction so it no longer appears in subsequent fetches.
+    correction.delete()
+
     sentences = sync_document_sentences(document=doc)
 
     payload = []
