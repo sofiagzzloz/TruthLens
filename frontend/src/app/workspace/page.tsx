@@ -751,8 +751,38 @@ export default function WorkspacePage() {
     }
   };
 
+  const preloadLatestSentences = useCallback(
+    async (documentId: number) => {
+      const latestSentences = await listDocumentSentences(documentId);
+      const correctionEntries = await Promise.all(
+        latestSentences.map(async (item) => {
+          try {
+            const corrections = await listSentenceCorrections(item.sentence_id);
+            return { sentenceId: item.sentence_id, corrections };
+          } catch (error) {
+            console.error(error);
+            return { sentenceId: item.sentence_id, corrections: [] };
+          }
+        }),
+      );
+
+      const correctionMap = new Map<number, CorrectionDetail[]>(
+        correctionEntries.map((entry) => [entry.sentenceId, entry.corrections]),
+      );
+
+      const enriched: SentenceAnalysis[] = latestSentences.map((sentence) => ({
+        ...sentence,
+        corrections: correctionMap.get(sentence.sentence_id) ?? [],
+      }));
+
+      setSentences(enriched);
+      setActiveSentenceId(null);
+    },
+    [],
+  );
+
   const handleApplyCorrection = async (sentenceId: number, correctionId: number | null | undefined) => {
-    if (typeof correctionId !== "number" || typeof selectedId !== "number") {
+    if (typeof correctionId !== "number" || typeof selectedId !== "number" || applyingCorrectionId !== null) {
       return;
     }
 
@@ -779,24 +809,19 @@ export default function WorkspacePage() {
       setAnalysisUpdatedAt(null);
 
       await refreshDocuments(result.document_id, false);
-
-      const enriched: SentenceAnalysis[] = result.sentences.map((sentence) => ({
-        sentence_id: sentence.sentence_id,
-        content: sentence.content,
-        start_index: sentence.start_index,
-        end_index: sentence.end_index,
-        flags: sentence.flags,
-        confidence: sentence.confidence,
-        corrections: sentence.corrections,
-      }));
-
-      setSentences(enriched);
-      setActiveSentenceId(null);
+      await preloadLatestSentences(result.document_id);
       closeSentenceModal();
       toast.success("Correction applied");
     } catch (error) {
-      console.error(error);
-      toast.error(error instanceof Error ? error.message : "Unable to apply correction");
+      if (error instanceof Error && error.message.toLowerCase().includes("sentence not found")) {
+        toast.info("That sentence was already updated. Refreshing analysis state.");
+        if (typeof selectedId === "number") {
+          await preloadLatestSentences(selectedId);
+        }
+      } else {
+        console.error(error);
+        toast.error(error instanceof Error ? error.message : "Unable to apply correction");
+      }
     } finally {
       setApplyingCorrectionId(null);
     }

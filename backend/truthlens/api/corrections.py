@@ -55,6 +55,12 @@ def apply_correction(request, sentence_id, correction_id):
     doc.content = new_text
     doc.save(update_fields=["content"])
 
+    sentence.content = correction.suggested_correction
+    sentence.end_index = sentence.start_index + len(correction.suggested_correction)
+    sentence.flags = False
+    sentence.confidence_scores = 100
+    sentence.save(update_fields=["content", "end_index", "flags", "confidence_scores"])
+
     sentences = sync_document_sentences(document=doc)
 
     payload = []
