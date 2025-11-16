@@ -12,14 +12,16 @@
 ## 🎯 Hackathon Tracks
 
 This project is submitted to:
+
 - **🏆 Automate Learning: Build Smarter Study Tools** (Primary Track)
 - **📚 GitBook Best Documentation Track** (Bonus Track)
 - **🤖 Built with Cline CLI** (Bonus Track)
+
 ---
 
 ## 📖 What is TruthLens?
 
-TruthLens is an **intelligent note-taking workspace** that automatically fact-checks your study notes in real-time using AI. Once you're done writing, TruthLens analyzes every sentence, identifies potential inaccuracies, provides corrections with reasoning, and links to reliable sources; all without breaking your flow.
+TruthLens is an **intelligent note-taking workspace** that fact-checks your study notes using AI. Once you're done writing, TruthLens analyzes every sentence, identifies potential inaccuracies, provides corrections with reasoning, and links to reliable sources; all without breaking your flow.
 
 Think of it as having a personal fact-checker and study assistant built directly into your notebook.
 
@@ -35,18 +37,16 @@ Think of it as having a personal fact-checker and study assistant built directly
 ---
 
 ## 💡 What Inspired TruthLens?
-We both go to an international university where professors first languages are often not english and it becomes incredibly hard to take notes and making sure that what you wrote is right. 
 
-We built this for students like us. 
+We both go to an international university where professors first languages are often not english and it becomes incredibly hard to take notes and making sure that what you wrote is right.
+
+We built this for students like us.
 
 Most learners:
 
 - ❌ Take notes quickly without verifying accuracy
-
 - ❌ Miss subtle factual errors
-
 - ❌ Spend hours double-checking material
-
 - ❌ Struggle to turn raw notes into reliable knowledge
 
 TruthLens automates the entire feedback loop, helping you learn faster, more accurately, and more confidently.
@@ -56,6 +56,7 @@ TruthLens automates the entire feedback loop, helping you learn faster, more acc
 ## 🛠️ Technologies Used
 
 ### Frontend
+
 - **Next.js 16** - React framework with App Router
 - **React 19.2** - UI library
 - **TypeScript** - Type-safe development
@@ -67,6 +68,7 @@ TruthLens automates the entire feedback loop, helping you learn faster, more acc
 - **Zod** - Schema validation
 
 ### Backend
+
 - **Django 5.0** - Python web framework
 - **Django REST Framework** - API development
 - **PostgreSQL 15** - Relational database
@@ -74,12 +76,14 @@ TruthLens automates the entire feedback loop, helping you learn faster, more acc
 - **Django CORS Headers** - Cross-origin resource sharing
 
 ### AI/ML
+
 - **Ollama** - Local LLM inference
 - **PyTorch** - Deep learning framework
 - **Transformers** - Hugging Face transformers
 - **LLM-based Fact Checking** - Custom prompt engineering for sentence analysis
 
 ### DevOps
+
 - **Docker & Docker Compose** - Multi-container orchestration
 - **PostgreSQL** - Database management
 
@@ -89,44 +93,46 @@ TruthLens automates the entire feedback loop, helping you learn faster, more acc
 
 ### Prerequisites
 
-- **Docker** and **Docker Compose** installed
+- **Docker Desktop** installed
 - **Ollama** installed locally ([Install from here](https://ollama.ai/)), we used gpt-oss:20b
+- 14GB free of RAM available
 - Port 3000 (frontend) and 8000 (backend) available
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/sofiagzzloz/TruthLens
    cd TruthLens
    ```
-
 2. **Start Ollama** (in a separate terminal)
+
    ```bash
    ollama serve
    ```
+3. **Pull an LLM model** (e.g., gpt-oss:20b)
 
-3. **Pull an LLM model** (e.g., llama2)
    ```bash
-   ollama pull llama2
+   ollama pull gpt-oss:20b
    ```
-
 4. **Build and start all services**
+
    ```bash
    docker-compose up -d --build
    ```
-
 5. **Run database migrations** (first time only)
+
    ```bash
    docker exec -it django_backend python manage.py migrate
    ```
-
 6. **Create a superuser** (optional, for admin access)
+
    ```bash
    docker exec -it django_backend python manage.py createsuperuser
    ```
-
 7. **Access the application**
+
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - Django Admin: http://localhost:8000/admin
@@ -137,7 +143,7 @@ TruthLens automates the entire feedback loop, helping you learn faster, more acc
 
 1. **Create an account** → Sign up and get your personal workspace
 2. **Write your notes** → Create documents and start writing your study notes
-3. **AI Analysis** → TruthLens automatically analyzes each sentence for factual accuracy
+3. **AI Analysis** → Run TruthLens to analyze each sentence for factual accuracy
 4. **View Results** → See flagged sentences with corrections, reasoning, and sources
 5. **Apply Corrections** → Review and apply suggested corrections to improve your notes
 6. **Build Knowledge** → Maintain a reliable, fact-checked knowledge base
@@ -180,8 +186,6 @@ TruthLens/
 │   └── requirements.txt
 │
 ├── docs/                     # GitBook documentation
-│   ├── intro.md
-│   └── api.md
 │
 ├── docker-compose.yml        # Multi-container orchestration
 └── README.md                # This file
@@ -194,6 +198,7 @@ TruthLens/
 [**Watch our demo video here**](https://youtu.be/egVAQgUe__c)
 
 Our demo showcases:
+
 - Creating a new document and writing notes
 - Real-time sentence analysis and fact-checking
 - Viewing corrections with AI reasoning and sources
@@ -204,16 +209,19 @@ Our demo showcases:
 
 ## 📚 Documentation
 
-Full documentation is available in our **GitBook documentation site**: 
+Full documentation is available in our **GitBook documentation site**:
 
 [**📖 View Documentation**](https://sofia-gonzalez-1.gitbook.io/truthlens/)
 
 The docs include:
-- Getting started guide
+
+- Table of Contents
+- Technology Stack
+- Entity Relationship Diagram
+- Backend Features
+- Frontend Features
+- AI Prompt Library
 - API reference
-- Architecture overview
-- Deployment instructions
-- Contributing guidelines
 
 ---
 
@@ -222,6 +230,7 @@ The docs include:
 TruthLens directly addresses the hackathon challenge: **"Make the learning process faster and more efficient"**
 
 ### We Automate:
+
 1. ✅ **Note verification** - No more manual fact-checking
 2. ✅ **Instant feedback** - Catch errors as you write
 3. ✅ **Source finding** - Automatic citation and reference linking
@@ -229,6 +238,7 @@ TruthLens directly addresses the hackathon challenge: **"Make the learning proce
 5. ✅ **Correction workflow** - Seamless fix application
 
 ### Learning Benefits:
+
 - **⚡ Faster**: Automated fact-checking saves hours of manual verification
 - **🎯 More Accurate**: AI catches errors humans might miss
 - **📈 Better Retention**: Correcting mistakes reinforces learning
@@ -236,7 +246,6 @@ TruthLens directly addresses the hackathon challenge: **"Make the learning proce
 - **🧠 Active Learning**: Reviewing corrections engages deeper understanding
 
 ---
-
 
 ## 🔮 Future Enhancements
 
