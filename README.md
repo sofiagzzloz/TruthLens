@@ -19,7 +19,7 @@ This project is submitted to:
 
 ## 📖 What is TruthLens?
 
-TruthLens is an **intelligent note-taking workspace** that automatically fact-checks your study notes in real-time using AI. As you write, TruthLens analyzes every sentence, identifies potential inaccuracies, provides corrections with reasoning, and links to reliable sources — all without breaking your flow.
+TruthLens is an **intelligent note-taking workspace** that automatically fact-checks your study notes in real-time using AI. Once you're done writing, TruthLens analyzes every sentence, identifies potential inaccuracies, provides corrections with reasoning, and links to reliable sources; all without breaking your flow.
 
 Think of it as having a personal fact-checker and study assistant built directly into your notebook.
 
@@ -35,6 +35,9 @@ Think of it as having a personal fact-checker and study assistant built directly
 ---
 
 ## 💡 What Inspired TruthLens?
+We both go to an international university where professors first languages are often not english and it becomes incredibly hard to take notes and making sure that what you wrote is right. 
+
+We built this for students like us. 
 
 Learning efficiently is hard. Students and knowledge workers often:
 - ❌ Take notes from multiple sources without verifying accuracy
