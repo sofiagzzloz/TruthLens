@@ -5,6 +5,7 @@ from truthlens.models import Sentence
 from truthlens.services.corrections.correction_services import (
     get_corrections_for_sentence,
 )
+from truthlens.services.sentences.sentence_service import sync_document_sentences
 
 
 @api_view(["GET"])
@@ -54,35 +55,33 @@ def apply_correction(request, sentence_id, correction_id):
     doc.content = new_text
     doc.save(update_fields=["content"])
 
+    sentences = sync_document_sentences(document=doc)
 
-    from truthlens.services.documents.document_service import extract_sentences
+    payload = []
 
-    Sentence.objects.filter(document_id=doc.document_id).delete()
-
-    parsed = extract_sentences(doc.content)
-
-    for s in parsed:
-        Sentence.objects.create(
-            document_id=doc,
-            content=s["content"],
-            start_index=s["start"],
-            end_index=s["end"],
-            flags=False,
-            confidence_scores=0,
-        )
-
-    updated = Sentence.objects.filter(document_id=doc.document_id).order_by("start_index")
+    for s in sentences:
+        corrections = get_corrections_for_sentence(s.sentence_id)
+        payload.append({
+            "sentence_id": s.sentence_id,
+            "content": s.content,
+            "start_index": s.start_index,
+            "end_index": s.end_index,
+            "flags": s.flags,
+            "confidence": s.confidence_scores,
+            "corrections": [
+                {
+                    "correction_id": c.correction_id,
+                    "suggested_correction": c.suggested_correction,
+                    "reasoning": c.reasoning,
+                    "sources": c.sources,
+                    "created_at": c.created_at,
+                }
+                for c in corrections
+            ],
+        })
 
     return Response({
         "document_id": doc.document_id,
         "content": doc.content,
-        "sentences": [
-            {
-                "sentence_id": s.sentence_id,
-                "content": s.content,
-                "flags": s.flags,
-                "confidence": s.confidence_scores,
-            }
-            for s in updated
-        ]
+        "sentences": payload,
     })

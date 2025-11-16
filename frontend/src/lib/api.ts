@@ -74,8 +74,11 @@ export type ApplyCorrectionResponse = {
   sentences: Array<{
     sentence_id: number;
     content: string;
+    start_index: number;
+    end_index: number;
     flags: boolean;
     confidence: number;
+    corrections: CorrectionDetail[];
   }>;
 };
 

@@ -780,26 +780,14 @@ export default function WorkspacePage() {
 
       await refreshDocuments(result.document_id, false);
 
-      const latestSentences = await listDocumentSentences(result.document_id);
-      const correctionEntries = await Promise.all(
-        latestSentences.map(async (item) => {
-          try {
-            const corrections = await listSentenceCorrections(item.sentence_id);
-            return { sentenceId: item.sentence_id, corrections };
-          } catch (error) {
-            console.error(error);
-            return { sentenceId: item.sentence_id, corrections: [] };
-          }
-        }),
-      );
-
-      const correctionMap = new Map<number, CorrectionDetail[]>(
-        correctionEntries.map((entry) => [entry.sentenceId, entry.corrections]),
-      );
-
-      const enriched: SentenceAnalysis[] = latestSentences.map((sentence) => ({
-        ...sentence,
-        corrections: correctionMap.get(sentence.sentence_id) ?? [],
+      const enriched: SentenceAnalysis[] = result.sentences.map((sentence) => ({
+        sentence_id: sentence.sentence_id,
+        content: sentence.content,
+        start_index: sentence.start_index,
+        end_index: sentence.end_index,
+        flags: sentence.flags,
+        confidence: sentence.confidence,
+        corrections: sentence.corrections,
       }));
 
       setSentences(enriched);
