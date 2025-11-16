@@ -1,6 +1,6 @@
 # Table of Contents
 
-* [Overview](<../README (1).md>)
+* [Overview](truthlens.md)
 * [Technology Stack](tech-stack.md)
 * [Entity Relationship Diagram](erd.md)
 * [Backend Features](backend.md)

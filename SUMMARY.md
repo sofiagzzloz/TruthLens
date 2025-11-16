@@ -9,4 +9,4 @@
   * [Entity Relationship Diagram](docs/erd.md)
   * [Frontend Features](docs/frontend.md)
   * [Technology Stack](docs/tech-stack.md)
-  * [TruthLens](<README (1).md>)
+  * [TruthLens](docs/truthlens.md)
