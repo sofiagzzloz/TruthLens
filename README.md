@@ -188,7 +188,7 @@ TruthLens/
 
 ## 🎥 Demo Video
 
-[**Watch our demo video here**](#) *(Add your YouTube/Vimeo link)*
+[**Watch our demo video here**](#) *(https://youtu.be/egVAQgUe__c)*
 
 Our demo showcases:
 - Creating a new document and writing notes
